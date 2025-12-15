@@ -39,7 +39,10 @@ export function Navbar() {
                     </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-4">
+                    <span className="text-xs font-medium text-muted-foreground bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                        Alpha
+                    </span>
                     <Link href="/workspace">
                         <Button size="sm" variant="default">
                             Try Workspace
