@@ -1,0 +1,10 @@
+services:
+  turtl_bio:
+    build:
+      context: ./turtl.bio
+      dockerfile: dockerfile
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    env_file:
+      - ./turtl.bio/.env
