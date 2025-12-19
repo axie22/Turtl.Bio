@@ -1,40 +1,41 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SignJWT } from "jose";
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { user, password } = body;
 
-        const validUser = process.env.ALPHA_AUTH_USER || "admin";
-        const validPass = process.env.ALPHA_AUTH_PASSWORD || "biotech";
-        const secretKey = new TextEncoder().encode(
-            process.env.ALPHA_AUTH_SECRET || "default_alpha_secret_key_change_in_prod"
-        );
+        const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
+        const res = await fetch(`${backendUrl}/auth/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ user, password }),
+        });
 
-        if (user === validUser && password === validPass) {
-            // Create response
-            const response = NextResponse.json({ success: true });
+        if (!res.ok) {
+            return NextResponse.json(
+                { success: false, message: "Invalid credentials" },
+                { status: res.status }
+            );
+        }
 
-            // Sign JWT
-            const token = await new SignJWT({ user: validUser, role: "alpha_user" })
-                .setProtectedHeader({ alg: "HS256" })
-                .setIssuedAt()
-                .setExpirationTime("7d")
-                .sign(secretKey);
+        const data = await res.json();
 
+        if (data.success && data.token) {
             // Set cookie
             const cookieStore = await cookies();
-            cookieStore.set("alpha_access_token", token, {
+            cookieStore.set("alpha_access_token", data.token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === "production",
                 sameSite: "strict",
                 path: "/",
-                maxAge: 60 * 60 * 24,
+                maxAge: 60 * 60 * 24 * 7, // 7 days
             });
 
-            return response;
+            return NextResponse.json({ success: true });
         }
 
         return NextResponse.json(

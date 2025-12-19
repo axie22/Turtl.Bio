@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
         if (token) {
             try {
                 const secretKey = new TextEncoder().encode(
-                    process.env.ALPHA_AUTH_SECRET || "default_alpha_secret_key_change_in_prod"
+                    process.env.ALPHA_AUTH_SECRET || ""
                 );
                 await jwtVerify(token, secretKey);
                 return NextResponse.next();
