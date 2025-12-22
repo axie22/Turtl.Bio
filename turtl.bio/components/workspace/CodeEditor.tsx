@@ -35,23 +35,12 @@ export function CodeEditor({
     }
   };
 
-  // Update editor value when initialContent changes (file switch)
-  useEffect(() => {
-    if (editorRef.current) {
-      // Only update if value is different to preserve undo stack if possible, 
-      // but essential for file switching
-      if (editorRef.current.getValue() !== initialContent) {
-        editorRef.current.setValue(initialContent);
-      }
-    }
-  }, [initialContent]);
-
   return (
     <div className="h-full w-full bg-[#1e1e1e]">
       <Editor
         height="100%"
         language={language}
-        value={initialContent} // Controlled or re-initialized
+        defaultValue={initialContent}
         theme="vs-dark"
         onMount={handleEditorDidMount}
         onChange={handleChange}
@@ -60,6 +49,13 @@ export function CodeEditor({
           fontSize: 14,
           wordWrap: "on",
           automaticLayout: true,
+          quickSuggestions: false,
+          suggestOnTriggerCharacters: false,
+          snippetSuggestions: "none",
+          codeLens: false,
+          parameterHints: { enabled: false },
+          hover: { enabled: false },
+          links: false,
         }}
       />
     </div>

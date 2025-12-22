@@ -86,6 +86,7 @@ export function WorkspaceLayout() {
                             {/* Top: Editor */}
                             <Panel defaultSize={70} minSize={20}>
                                 <CodeEditor
+                                    key={currentFile?.path || 'empty'}
                                     initialContent={currentFile?.content}
                                     language={currentFile ? getLanguageFromFilename(currentFile.handle.name) : 'javascript'}
                                     onSave={saveFile}
