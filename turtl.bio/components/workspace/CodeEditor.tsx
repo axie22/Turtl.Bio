@@ -50,7 +50,7 @@ export function CodeEditor({
     <div className="h-full w-full bg-[#1e1e1e]">
       <Editor
         height="100%"
-        defaultLanguage={language}
+        language={language}
         value={initialContent} // Controlled or re-initialized
         theme="vs-dark"
         onMount={handleEditorDidMount}

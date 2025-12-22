@@ -11,6 +11,39 @@ const Terminal = dynamic(() => import("./Terminal").then((mod) => mod.Terminal),
     loading: () => <div className="h-full w-full bg-[#1e1e1e] text-white p-2">Loading Terminal...</div>,
 });
 
+function getLanguageFromFilename(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase();
+
+    switch (ext) {
+        case 'js':
+        case 'jsx':
+            return 'javascript';
+        case 'ts':
+        case 'tsx':
+            return 'typescript';
+        case 'css':
+            return 'css';
+        case 'html':
+            return 'html';
+        case 'json':
+            return 'json';
+        case 'md':
+            return 'markdown';
+        case 'py':
+            return 'python';
+        case 'go':
+            return 'go';
+        case 'rs':
+            return 'rust';
+        case 'yaml':
+        case 'yml':
+            return 'yaml';
+        default:
+            if (filename.toLowerCase() === 'dockerfile') return 'dockerfile';
+            return 'plaintext';
+    }
+}
+
 export function WorkspaceLayout() {
     const {
         directoryHandle,
@@ -54,7 +87,7 @@ export function WorkspaceLayout() {
                             <Panel defaultSize={70} minSize={20}>
                                 <CodeEditor
                                     initialContent={currentFile?.content}
-                                    language="javascript" // TODO: Detect language from extension
+                                    language={currentFile ? getLanguageFromFilename(currentFile.handle.name) : 'javascript'}
                                     onSave={saveFile}
                                 />
                             </Panel>
