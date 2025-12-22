@@ -8,3 +8,15 @@ services:
     restart: unless-stopped
     env_file:
       - ./turtl.bio/.env
+    environment:
+      - BACKEND_URL=http://turtl_bio_backend:8080
+
+  turtl_bio_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
