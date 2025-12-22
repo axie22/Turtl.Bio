@@ -3,48 +3,23 @@
 import React, { useState } from "react";
 import { Folder, FileCode, ChevronRight, ChevronDown } from "lucide-react";
 import { clsx } from "clsx";
-
-interface FileNode {
-    id: string;
-    name: string;
-    type: "file" | "folder";
-    children?: FileNode[];
-}
-
-const MOCK_FILES: FileNode[] = [
-    {
-        id: "root",
-        name: "turtl-project",
-        type: "folder",
-        children: [
-            {
-                id: "src",
-                name: "src",
-                type: "folder",
-                children: [
-                    { id: "main.ts", name: "main.ts", type: "file" },
-                    { id: "utils.ts", name: "utils.ts", type: "file" },
-                    { id: "types.d.ts", name: "types.d.ts", type: "file" },
-                ],
-            },
-            { id: "package.json", name: "package.json", type: "file" },
-            { id: "README.md", name: "README.md", type: "file" },
-            { id: ".gitignore", name: ".gitignore", type: "file" },
-        ],
-    },
-];
+import { FileNode } from "./useFileSystem";
 
 interface FileTreeItemProps {
     node: FileNode;
     level: number;
+    onSelect: (node: FileNode) => void;
 }
 
-function FileTreeItem({ node, level }: FileTreeItemProps) {
-    const [isOpen, setIsOpen] = useState(true);
+function FileTreeItem({ node, level, onSelect }: FileTreeItemProps) {
+    const [isOpen, setIsOpen] = useState(false);
 
-    const toggleOpen = () => {
+    const toggleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (node.type === "folder") {
             setIsOpen(!isOpen);
+        } else {
+            onSelect(node);
         }
     };
 
@@ -76,7 +51,7 @@ function FileTreeItem({ node, level }: FileTreeItemProps) {
             {isOpen && node.children && (
                 <div>
                     {node.children.map((child) => (
-                        <FileTreeItem key={child.id} node={child} level={level + 1} />
+                        <FileTreeItem key={child.id} node={child} level={level + 1} onSelect={onSelect} />
                     ))}
                 </div>
             )}
@@ -84,13 +59,24 @@ function FileTreeItem({ node, level }: FileTreeItemProps) {
     );
 }
 
-export function FileExplorer() {
+interface FileExplorerProps {
+    files: FileNode[];
+    onFileSelect: (node: FileNode) => void;
+}
+
+export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
     return (
         <div className="h-full bg-[#181818] text-white overflow-y-auto">
             <div className="p-2 text-xs font-bold uppercase tracking-wider text-gray-500">Explorer</div>
-            {MOCK_FILES.map((node) => (
-                <FileTreeItem key={node.id} node={node} level={0} />
-            ))}
+            {files.length === 0 ? (
+                <div className="p-4 text-center text-gray-500 text-sm">
+                    No folder open
+                </div>
+            ) : (
+                files.map((node) => (
+                    <FileTreeItem key={node.id} node={node} level={0} onSelect={onFileSelect} />
+                ))
+            )}
         </div>
     );
 }
