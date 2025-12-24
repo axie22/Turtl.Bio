@@ -4,6 +4,7 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import dynamic from "next/dynamic";
 import { FileExplorer } from "./FileExplorer";
 import { CodeEditor } from "./CodeEditor";
+import { PdfViewer } from "./PdfViewer";
 import { useFileSystem } from "./useFileSystem";
 
 const Terminal = dynamic(() => import("./Terminal").then((mod) => mod.Terminal), {
@@ -83,14 +84,18 @@ export function WorkspaceLayout() {
                     <Panel defaultSize={80}>
                         <PanelGroup direction="vertical">
 
-                            {/* Top: Editor */}
+                            {/* Top: Editor or PDF Viewer */}
                             <Panel defaultSize={70} minSize={20}>
-                                <CodeEditor
-                                    key={currentFile?.path || 'empty'}
-                                    initialContent={currentFile?.content}
-                                    language={currentFile ? getLanguageFromFilename(currentFile.handle.name) : 'javascript'}
-                                    onSave={saveFile}
-                                />
+                                {currentFile && currentFile.handle.name.toLowerCase().endsWith('.pdf') ? (
+                                    <PdfViewer url={currentFile.objectUrl} />
+                                ) : (
+                                    <CodeEditor
+                                        key={currentFile?.path || 'empty'}
+                                        initialContent={currentFile?.content}
+                                        language={currentFile ? getLanguageFromFilename(currentFile.handle.name) : 'javascript'}
+                                        onSave={saveFile}
+                                    />
+                                )}
                             </Panel>
 
                             <PanelResizeHandle className="h-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-row-resize" />
