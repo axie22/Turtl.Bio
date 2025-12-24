@@ -51,6 +51,7 @@ export interface FileSystemState {
         handle: FileSystemFileHandle;
         content: string;
         path: string;
+        objectUrl?: string;
     } | null;
     unsavedChanges: boolean;
 }
@@ -107,12 +108,24 @@ export function useFileSystem() {
         if (node.type !== "file") return;
         const handle = node.handle as FileSystemFileHandle;
         const file = await handle.getFile();
-        const content = await file.text();
-        setCurrentFile({
-            handle,
-            content,
-            path: node.id
-        });
+
+        // Check if file is PDF
+        if (node.name.toLowerCase().endsWith('.pdf')) {
+            const objectUrl = URL.createObjectURL(file);
+            setCurrentFile({
+                handle,
+                content: "", // No text content for PDF
+                path: node.id,
+                objectUrl
+            });
+        } else {
+            const content = await file.text();
+            setCurrentFile({
+                handle,
+                content,
+                path: node.id
+            });
+        }
         setUnsavedChanges(false);
     };
 
