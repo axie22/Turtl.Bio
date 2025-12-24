@@ -96,12 +96,19 @@ export function WorkspaceLayout() {
             </div>
 
             <div className="flex-1 overflow-hidden">
-                <PanelGroup direction="horizontal">
+                <PanelGroup direction="horizontal" id="root-group">
 
                     {/* Sidebar: File Explorer */}
                     {isSidebarOpen && (
                         <>
-                            <Panel defaultSize={20} minSize={10} maxSize={30} className="border-r border-[#333]">
+                            <Panel
+                                defaultSize={20}
+                                minSize={10}
+                                maxSize={30}
+                                className="border-r border-[#333]"
+                                id="sidebar-panel"
+                                order={1}
+                            >
                                 <FileExplorer files={fileTree} onFileSelect={selectFile} />
                             </Panel>
                             <PanelResizeHandle className="w-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-col-resize" />
@@ -109,11 +116,11 @@ export function WorkspaceLayout() {
                     )}
 
                     {/* Main Content: Editor & Terminal */}
-                    <Panel defaultSize={80}>
-                        <PanelGroup direction="vertical">
+                    <Panel defaultSize={80} id="main-panel" order={2}>
+                        <PanelGroup direction="vertical" id="main-vertical-group">
 
                             {/* Top: Editor or PDF Viewer */}
-                            <Panel defaultSize={70} minSize={20}>
+                            <Panel defaultSize={70} minSize={20} id="editor-panel" order={1}>
                                 {currentFile && currentFile.handle.name.toLowerCase().endsWith('.pdf') ? (
                                     <PdfViewer url={currentFile.objectUrl} />
                                 ) : (
@@ -132,7 +139,7 @@ export function WorkspaceLayout() {
                             {isTerminalOpen && (
                                 <>
                                     <PanelResizeHandle className="h-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-row-resize" />
-                                    <Panel defaultSize={30} minSize={10}>
+                                    <Panel defaultSize={30} minSize={10} id="terminal-panel" order={2}>
                                         <Terminal />
                                     </Panel>
                                 </>
