@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { Sidebar as SidebarIcon, Terminal as TerminalIcon, FolderOpen } from "lucide-react";
+import { Sidebar as SidebarIcon, Terminal as TerminalIcon, FolderOpen, Sparkles } from "lucide-react";
 import dynamic from "next/dynamic";
 import { FileExplorer } from "./FileExplorer";
 import { CodeEditor } from "./CodeEditor";
 import { PdfViewer } from "./PdfViewer";
+import { CopilotPanel } from "./CopilotPanel";
 import { useFileSystem } from "./useFileSystem";
 
 const Terminal = dynamic(() => import("./Terminal").then((mod) => mod.Terminal), {
@@ -59,6 +60,7 @@ export function WorkspaceLayout() {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isTerminalOpen, setIsTerminalOpen] = useState(true);
+    const [isCopilotOpen, setIsCopilotOpen] = useState(true);
 
     return (
         <div className="h-screen w-screen bg-black text-white overflow-hidden flex flex-col">
@@ -85,6 +87,13 @@ export function WorkspaceLayout() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setIsCopilotOpen(!isCopilotOpen)}
+                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isCopilotOpen ? 'text-purple-400' : 'text-gray-400'}`}
+                        title="Toggle AI Copilot"
+                    >
+                        <Sparkles size={18} />
+                    </button>
                     <button
                         onClick={openDirectory}
                         className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-xs rounded text-white font-medium transition-colors"
@@ -147,6 +156,22 @@ export function WorkspaceLayout() {
 
                         </PanelGroup>
                     </Panel>
+
+                    {/* Right Panel: AI Copilot */}
+                    {isCopilotOpen && (
+                        <>
+                            <PanelResizeHandle className="w-1 bg-[#333] hover:bg-purple-500 transition-colors cursor-col-resize" />
+                            <Panel
+                                defaultSize={20}
+                                minSize={15}
+                                maxSize={40}
+                                id="copilot-panel"
+                                order={3}
+                            >
+                                <CopilotPanel directoryName={directoryHandle ? directoryHandle.name : ""} />
+                            </Panel>
+                        </>
+                    )}
 
                 </PanelGroup>
             </div>
