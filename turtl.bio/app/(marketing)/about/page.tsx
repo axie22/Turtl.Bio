@@ -38,7 +38,7 @@ const TEAM: TeamMember[] = [
   {
     name: "Alexander Xie",
     role: "Engineering Lead",
-    initials: "AX",
+    image: "/Alex.jpeg",
     linkedin: "https://linkedin.com/in/alexanderxie04",
     pastExperience: ["Amazon", "Fortinet"],
   },
