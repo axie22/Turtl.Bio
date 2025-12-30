@@ -8,7 +8,6 @@ export function Terminal() {
 
     return (
         <div className="h-full w-full bg-[#0a0a0a] text-gray-300 flex flex-col font-mono text-sm border-t border-[#333]">
-            {/* Header / Toggle Bar - Always Visible (Closed Variant is essentially just this bar) */}
             <div
                 className="flex items-center justify-between px-4 py-2 bg-[#1e1e1e] cursor-pointer hover:bg-[#252525] transition-colors select-none"
                 onClick={() => setIsOpen(!isOpen)}
@@ -68,7 +67,6 @@ export function Terminal() {
                         </div>
                     </div>
 
-                    {/* Example Raw Data Excerpt */}
                     <div className="space-y-2">
                         <h3 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1 flex items-center gap-2">
                             <Database size={12} />
@@ -86,8 +84,6 @@ export function Terminal() {
 }`}</pre>
                         </div>
                     </div>
-
-                    {/* Loading / Confirmation Line */}
                     <div className="flex items-center gap-2 py-2 text-xs text-gray-500 border-t border-[#222] mt-4">
                         <Loader2 size={12} className="animate-spin text-blue-500" />
                         <span>Syncing verification status with regulatory database...</span>
