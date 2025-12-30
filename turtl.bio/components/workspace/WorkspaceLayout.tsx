@@ -142,8 +142,6 @@ export function WorkspaceLayout() {
                                 )}
                             </Panel>
 
-                            <PanelResizeHandle className="h-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-row-resize" />
-
                             {/* Bottom: Terminal */}
                             {isTerminalOpen && (
                                 <>
