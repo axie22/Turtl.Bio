@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Sparkles, Send, Bot, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,13 +37,39 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
         scrollToBottom();
     }, [messages]);
 
-    const handleSendMessage = () => {
-        if (!inputValue.trim()) return;
+    const streamResponse = useCallback((fullText: string) => {
+        const id = (Date.now() + 1).toString();
+        const newMessage: Message = {
+            id,
+            role: 'assistant',
+            content: "",
+            timestamp: Date.now()
+        };
+
+        setMessages(prev => [...prev, newMessage]);
+        setIsLoading(false); // Stop loading spinner, start streaming
+
+        let i = 0;
+        const interval = setInterval(() => {
+            setMessages(prev => prev.map(msg => 
+                msg.id === id 
+                    ? { ...msg, content: fullText.slice(0, i + 1) }
+                    : msg
+            ));
+            i++;
+            if (i >= fullText.length) {
+                clearInterval(interval);
+            }
+        }, 20); // Typing speed
+    }, []);
+
+    const handleSendMessage = useCallback((text: string) => {
+        if (!text.trim()) return;
 
         const userMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: inputValue,
+            content: text,
             timestamp: Date.now()
         };
 
@@ -51,6 +77,7 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
         setInputValue("");
         setIsLoading(true);
 
+        // Delay before streaming starts
         setTimeout(() => {
             const aiResponses = [
                 "The preclinical toxicology data suggests a potential signal in the hepatic panel. We should cross-reference this with the 21 CFR 312.23(a)(8) requirements for pharmacology and toxicology information.",
@@ -58,27 +85,44 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
                 "I've flagged a potential gap in the CMC (Chemistry, Manufacturing, and Controls) section regarding the stability protocol for the clinical batch.",
                 "Based on the mechanism of action, we should anticipate FDA questions regarding off-target effects. I recommend conducting an additional safety pharmacology study.",
                 "The protocol for the Phase 1 study needs to explicitly define the stopping rules for dose escalation as per FDA guidance on identifying safe starting doses.",
-                "Remember to include the Form FDA 1571 and 1572 in Module 1 of the eCTD structure."
+                "Remember to include the Form FDA 1571 and 1572 in Module 1 of the eCTD structure.",
+                "Regarding 21 CFR Part 11.10(e), the key requirement is ensuring that the audit trail captures the exact timestamp of every record creation, modification, or deletion. Your system needs to prevent users from altering these timestamps."
             ];
-            const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+            
+            const isContextQuestion = text.includes("21 CFR Part 11.10(e)");
+            const responseContent = isContextQuestion 
+                ? aiResponses[6] 
+                : aiResponses[Math.floor(Math.random() * (aiResponses.length - 1))];
 
-            const aiMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: randomResponse,
-                timestamp: Date.now()
-            };
-
-            setMessages(prev => [...prev, aiMessage]);
-            setIsLoading(false);
-        }, 1500);
-    };
+            streamResponse(responseContent);
+        }, 1000);
+    }, [streamResponse]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            handleSendMessage();
+            handleSendMessage(inputValue);
         }
     };
+
+    // Listen for custom event from Terminal
+    useEffect(() => {
+        const handleCustomEvent = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            if (detail) {
+                // Ensure the panel is ready to receive
+                handleSendMessage(detail);
+            }
+        };
+
+        window.addEventListener('trigger-copilot-question', handleCustomEvent);
+        return () => window.removeEventListener('trigger-copilot-question', handleCustomEvent);
+    }, [handleSendMessage]);
+
+    const quickPrompts = [
+        "Analyze Safety Data",
+        "Check 21 CFR Compliance", 
+        "Generate Summary"
+    ];
 
     return (
         <div className="h-full w-full bg-[#1e1e1e] border-l border-[#333] flex flex-col">
@@ -109,6 +153,9 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
                                 : 'bg-blue-600 text-white border border-blue-500'}
                         `}>
                             {msg.content}
+                            {msg.role === 'assistant' && msg.id !== 'welcome' && (msg.content.length === 0 || msg === messages[messages.length - 1] && isLoading === false && msg.content.length > 0 && msg.content.length < 10) && (
+                                <span className="inline-block w-1.5 h-4 ml-1 align-middle bg-purple-400 animate-pulse" />
+                            )}
                         </div>
                     </div>
                 ))}
@@ -129,7 +176,21 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-[#333] bg-[#1e1e1e]">
+            <div className="p-4 border-t border-[#333] bg-[#1e1e1e] space-y-3">
+                {/* Quick Prompts */}
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    {quickPrompts.map((prompt) => (
+                        <button
+                            key={prompt}
+                            onClick={() => handleSendMessage(prompt)}
+                            disabled={isLoading}
+                            className="text-xs bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-3 py-1.5 rounded-full border border-[#444] whitespace-nowrap transition-colors disabled:opacity-50"
+                        >
+                            {prompt}
+                        </button>
+                    ))}
+                </div>
+
                 <div className="relative flex gap-2">
                     <Input
                         value={inputValue}
@@ -141,7 +202,7 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
                     <Button 
                         size="icon" 
                         variant="ghost" 
-                        onClick={handleSendMessage}
+                        onClick={() => handleSendMessage(inputValue)}
                         disabled={!inputValue.trim() || isLoading}
                         className="h-10 w-10 text-gray-400 hover:text-white hover:bg-[#333]"
                     >
