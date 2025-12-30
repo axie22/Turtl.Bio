@@ -20,10 +20,11 @@ interface LayoutRendererProps {
     onActivatePane: (id: string) => void;
     onActivateTab: (paneId: string, tabId: string) => void;
     onCloseTab: (paneId: string, tabId: string) => void;
+    onMoveTab: (sourcePaneId: string, targetPaneId: string, tabId: string) => void;
     onSave: (content: string) => void;
 }
 
-function LayoutRenderer({ node, activePaneId, onSplit, onActivatePane, onActivateTab, onCloseTab, onSave }: LayoutRendererProps) {
+function LayoutRenderer({ node, activePaneId, onSplit, onActivatePane, onActivateTab, onCloseTab, onMoveTab, onSave }: LayoutRendererProps) {
     if (node.type === 'split') {
         return (
             <PanelGroup direction={node.direction}>
@@ -37,6 +38,7 @@ function LayoutRenderer({ node, activePaneId, onSplit, onActivatePane, onActivat
                                 onActivatePane={onActivatePane}
                                 onActivateTab={onActivateTab}
                                 onCloseTab={onCloseTab}
+                                onMoveTab={onMoveTab}
                                 onSave={onSave}
                             />
                         </Panel>
@@ -55,6 +57,7 @@ function LayoutRenderer({ node, activePaneId, onSplit, onActivatePane, onActivat
             onActivatePane={onActivatePane}
             onActivateTab={onActivateTab}
             onCloseTab={onCloseTab}
+            onMoveTab={onMoveTab}
             onSave={onSave}
         />
     );
@@ -105,11 +108,12 @@ interface EditorPaneProps {
     onActivatePane: (id: string) => void;
     onActivateTab: (paneId: string, tabId: string) => void;
     onCloseTab: (paneId: string, tabId: string) => void;
+    onMoveTab: (sourcePaneId: string, targetPaneId: string, tabId: string) => void;
     onSave: (content: string) => void;
 }
 
-function EditorPane({ node, isActive, onSplit, onActivatePane, onActivateTab, onCloseTab, onSave }: EditorPaneProps) {
-    const [dragOverZone, setDragOverZone] = useState<'right' | 'bottom' | null>(null);
+function EditorPane({ node, isActive, onSplit, onActivatePane, onActivateTab, onCloseTab, onMoveTab, onSave }: EditorPaneProps) {
+    const [dragOverZone, setDragOverZone] = useState<'right' | 'bottom' | 'center' | null>(null);
 
     const activeTab = node.tabs.find(t => t.id === node.activeTabId);
 
@@ -132,7 +136,7 @@ function EditorPane({ node, isActive, onSplit, onActivatePane, onActivateTab, on
         } else if (y > height * 0.75) {
             setDragOverZone('bottom');
         } else {
-            setDragOverZone(null);
+            setDragOverZone('center');
         }
     };
 
@@ -140,15 +144,20 @@ function EditorPane({ node, isActive, onSplit, onActivatePane, onActivateTab, on
         e.preventDefault();
         setDragOverZone(null);
         
-        if (dragOverZone) {
-            const direction = dragOverZone === 'right' ? 'horizontal' : 'vertical';
-            try {
-                const tabData = JSON.parse(e.dataTransfer.getData('tabData'));
+        try {
+            const tabData = JSON.parse(e.dataTransfer.getData('tabData'));
+            const sourcePaneId = e.dataTransfer.getData('sourcePaneId');
+            
+            if (dragOverZone === 'right' || dragOverZone === 'bottom') {
+                const direction = dragOverZone === 'right' ? 'horizontal' : 'vertical';
                 onSplit(node.id, direction, tabData.id);
-            } catch (err) {
-                console.error("Failed to parse tab data", err);
-                onSplit(node.id, direction); 
+            } else if (dragOverZone === 'center') {
+                if (sourcePaneId && tabData.id) {
+                    onMoveTab(sourcePaneId, node.id, tabData.id);
+                }
             }
+        } catch (err) {
+            console.error("Failed to parse tab data or handle drop", err);
         }
     };
 
@@ -240,7 +249,8 @@ export function WorkspaceLayout() {
         splitPane,
         setActivePaneId,
         closeTab,
-        activateTab
+        activateTab,
+        moveTab
     } = useFileSystem();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -322,6 +332,7 @@ export function WorkspaceLayout() {
                                     onActivatePane={setActivePaneId}
                                     onActivateTab={activateTab}
                                     onCloseTab={closeTab}
+                                    onMoveTab={moveTab}
                                     onSave={saveFile}
                                 />
                             </Panel>

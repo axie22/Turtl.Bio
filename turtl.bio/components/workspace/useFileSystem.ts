@@ -90,7 +90,7 @@ export function useFileSystem() {
     const [activePaneId, setActivePaneId] = useState<string>('root');
     const [unsavedChanges, setUnsavedChanges] = useState(false);
 
-    // Helpers to recursively find/update nodes
+
     const findNode = (node: LayoutNode, id: string): LayoutNode | null => {
         if (node.id === id) return node;
         if (node.type === 'split') {
@@ -111,6 +111,67 @@ export function useFileSystem() {
             };
         }
         return root;
+    };
+
+    const findTabLocation = (node: LayoutNode, tabId: string): { paneId: string, node: LeafNode, tab: FileTab } | null => {
+        if (node.type === 'leaf') {
+            const tab = node.tabs.find(t => t.id === tabId);
+            if (tab) return { paneId: node.id, node, tab };
+        } else {
+            for (const child of node.children) {
+                const found = findTabLocation(child, tabId);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    const removeTabFromNode = (node: LayoutNode, paneId: string, tabId: string): LayoutNode => {
+        if (node.id === paneId && node.type === 'leaf') {
+            const newTabs = node.tabs.filter(t => t.id !== tabId);
+            let newActiveId = node.activeTabId;
+            if (node.activeTabId === tabId) {
+                newActiveId = newTabs.length > 0 ? newTabs[newTabs.length - 1].id : null;
+            }
+            return { ...node, tabs: newTabs, activeTabId: newActiveId };
+        }
+        if (node.type === 'split') {
+            return { ...node, children: node.children.map(c => removeTabFromNode(c, paneId, tabId)) };
+        }
+        return node;
+    };
+
+    const addTabToNode = (node: LayoutNode, paneId: string, tab: FileTab): LayoutNode => {
+        if (node.id === paneId && node.type === 'leaf') {
+            const exists = node.tabs.find(t => t.id === tab.id);
+            if (exists) return { ...node, activeTabId: tab.id };
+            return {
+                ...node,
+                tabs: [...node.tabs, tab],
+                activeTabId: tab.id
+            };
+        }
+        if (node.type === 'split') {
+            return { ...node, children: node.children.map(c => addTabToNode(c, paneId, tab)) };
+        }
+        return node;
+    };
+
+    const pruneLayout = (node: LayoutNode): LayoutNode | null => {
+        if (node.type === 'leaf') {
+            if (node.tabs.length === 0) return null;
+            return node;
+        }
+        
+        // Split node
+        const newChildren = node.children
+            .map(pruneLayout)
+            .filter((c): c is LayoutNode => c !== null);
+
+        if (newChildren.length === 0) return null;
+        if (newChildren.length === 1) return newChildren[0]; // Collapse split
+
+        return { ...node, children: newChildren };
     };
 
     const readDirectory = async (dirHandle: FileSystemDirectoryHandle, path: string = ""): Promise<FileNode[]> => {
@@ -221,23 +282,12 @@ export function useFileSystem() {
     };
 
     const closeTab = (paneId: string, tabId: string) => {
-        setLayout(prev => updateNode(prev, paneId, (node) => {
-            if (node.type !== 'leaf') return node;
-
-            const newTabs = node.tabs.filter(t => t.id !== tabId);
-            let newActiveId = node.activeTabId;
-
-            // If we closed the active tab, switch to another one
-            if (tabId === node.activeTabId) {
-                newActiveId = newTabs.length > 0 ? newTabs[newTabs.length - 1].id : null;
-            }
-
-            return {
-                ...node,
-                tabs: newTabs,
-                activeTabId: newActiveId
-            };
-        }));
+        setLayout(prev => {
+            const updated = removeTabFromNode(prev, paneId, tabId);
+            const pruned = pruneLayout(updated);
+            // Ensure root is never null if everything is closed
+            return pruned || { id: 'root', type: 'leaf', tabs: [], activeTabId: null };
+        });
     };
 
     const saveFile = async (content: string) => {
@@ -252,10 +302,6 @@ export function useFileSystem() {
             await writable.write(content);
             await writable.close();
             
-            // Update content in state for ALL instances of this file? 
-            // Ideally yes, but for now just this tab in this pane.
-            // COMPLEXITY: Syncing changes across split panes for same file.
-            // MVP: Just update this tab.
             setLayout(prev => updateNode(prev, activePaneId, (node) => {
                 if (node.type === 'leaf') {
                     return {
@@ -274,44 +320,46 @@ export function useFileSystem() {
         }
     };
 
-    const splitPane = (targetId: string, direction: 'horizontal' | 'vertical', tabIdToMove?: string) => {
-        // Helper to find a tab by ID anywhere in the layout
-        const findTab = (node: LayoutNode, id: string): FileTab | null => {
-            if (node.type === 'leaf') {
-                return node.tabs.find(t => t.id === id) || null;
-            }
-            for (const child of node.children) {
-                const found = findTab(child, id);
-                if (found) return found;
-            }
-            return null;
-        };
+    const moveTab = (sourcePaneId: string, targetPaneId: string, tabId: string) => {
+        setLayout(prev => {
+            const loc = findTabLocation(prev, tabId);
+            if (!loc) return prev;
+            let newLayout = removeTabFromNode(prev, sourcePaneId, tabId);
 
-        setLayout(prev => updateNode(prev, targetId, (node) => {
-            if (node.type !== 'leaf') return node;
-
-            const newId = Date.now().toString();
+            newLayout = addTabToNode(newLayout, targetPaneId, loc.tab);
             
-            // Determine initial tab for new pane
+            const pruned = pruneLayout(newLayout);
+            return pruned || { id: 'root', type: 'leaf', tabs: [], activeTabId: null };
+        });
+        setActivePaneId(targetPaneId);
+    };
+
+    const splitPane = (targetId: string, direction: 'horizontal' | 'vertical', tabIdToMove?: string) => {
+        setLayout(prev => {
             let initialTabs: FileTab[] = [];
             let initialActiveId: string | null = null;
+            
+            let layoutInProgress = prev;
 
             if (tabIdToMove) {
-                const tab = findTab(prev, tabIdToMove);
-                if (tab) {
-                    initialTabs = [tab];
-                    initialActiveId = tab.id;
+                const loc = findTabLocation(prev, tabIdToMove);
+                if (loc) {
+                    initialTabs = [loc.tab];
+                    initialActiveId = loc.tab.id;
+                    layoutInProgress = removeTabFromNode(layoutInProgress, loc.paneId, tabIdToMove);
                 }
-            } 
-            
-            if (initialTabs.length === 0 && node.activeTabId) {
-                const activeTab = node.tabs.find(t => t.id === node.activeTabId);
-                if (activeTab) {
-                    initialTabs = [activeTab];
-                    initialActiveId = activeTab.id;
+            } else {
+                const targetNode = findNode(prev, targetId);
+                if (targetNode && targetNode.type === 'leaf' && targetNode.activeTabId) {
+                    const activeTab = targetNode.tabs.find(t => t.id === targetNode.activeTabId);
+                    if (activeTab) {
+                        initialTabs = [activeTab];
+                        initialActiveId = activeTab.id;
+                    }
                 }
             }
 
+            const newId = Date.now().toString();
             const newLeaf: LeafNode = {
                 id: newId,
                 type: 'leaf',
@@ -319,16 +367,28 @@ export function useFileSystem() {
                 activeTabId: initialActiveId
             };
 
-            return {
-                id: `${node.id}-split-${Date.now()}`,
-                type: 'split',
-                direction,
-                children: [
-                    node,
-                    newLeaf
-                ]
+            const splitTransformer = (node: LayoutNode): LayoutNode => {
+                 if (node.id === targetId && node.type === 'leaf') {
+                     return {
+                        id: `${node.id}-split-${Date.now()}`,
+                        type: 'split',
+                        direction,
+                        children: [
+                            node,
+                            newLeaf
+                        ]
+                    };
+                 }
+                 if (node.type === 'split') {
+                     return { ...node, children: node.children.map(splitTransformer) };
+                 }
+                 return node;
             };
-        }));
+
+            const splitLayout = splitTransformer(layoutInProgress);
+            const finalLayout = pruneLayout(splitLayout);
+            return finalLayout || { id: 'root', type: 'leaf', tabs: [], activeTabId: null };
+        });
     };
 
     return {
@@ -345,6 +405,7 @@ export function useFileSystem() {
         setActivePaneId,
         splitPane,
         closeTab,
-        activateTab
+        activateTab,
+        moveTab
     };
 }
