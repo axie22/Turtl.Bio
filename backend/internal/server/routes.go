@@ -23,6 +23,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	copilotHandler := copilot.NewHandler()
 	mux.HandleFunc("/copilot/chat", copilotHandler.HandleChat)
 
+	// Search
+
 	// Protected routes example
 	// mux.Handle("/api/protected", authService.Middleware(http.HandlerFunc(protectedHandler)))
 

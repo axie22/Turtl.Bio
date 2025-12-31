@@ -3,12 +3,13 @@
 import { useState } from "react";
 import React, { DragEvent } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { Sidebar as SidebarIcon, Terminal as TerminalIcon, FolderOpen, Sparkles, X } from "lucide-react";
+import { Sidebar as SidebarIcon, Terminal as TerminalIcon, FolderOpen, Sparkles, X, Search as SearchIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { FileExplorer } from "./FileExplorer";
 import { CodeEditor } from "./CodeEditor";
 import { PdfViewer } from "./PdfViewer";
 import { CopilotPanel } from "./CopilotPanel";
+import { SearchPanel } from "./SearchPanel";
 import { useFileSystem, LayoutNode, FileTab } from "./useFileSystem";
 
 // --- Recursive Layout Renderer ---
@@ -250,9 +251,11 @@ export function WorkspaceLayout() {
         setActivePaneId,
         closeTab,
         activateTab,
-        moveTab
+        moveTab,
+        openFileByPath
     } = useFileSystem();
 
+    const [sidebarView, setSidebarView] = useState<'explorer' | 'search'>('explorer');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isTerminalOpen, setIsTerminalOpen] = useState(true);
     const [isCopilotOpen, setIsCopilotOpen] = useState(true);
@@ -263,11 +266,32 @@ export function WorkspaceLayout() {
             <div className="h-10 border-b border-[#333] flex items-center px-4 bg-[#1e1e1e] select-none justify-between">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isSidebarOpen ? 'text-blue-400' : 'text-gray-400'}`}
-                        title="Toggle Sidebar"
+                        onClick={() => {
+                            if (sidebarView === 'explorer' && isSidebarOpen) {
+                                setIsSidebarOpen(false);
+                            } else {
+                                setSidebarView('explorer');
+                                setIsSidebarOpen(true);
+                            }
+                        }}
+                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isSidebarOpen && sidebarView === 'explorer' ? 'text-blue-400' : 'text-gray-400'}`}
+                        title="File Explorer"
                     >
                         <SidebarIcon size={18} />
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (sidebarView === 'search' && isSidebarOpen) {
+                                setIsSidebarOpen(false);
+                            } else {
+                                setSidebarView('search');
+                                setIsSidebarOpen(true);
+                            }
+                        }}
+                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isSidebarOpen && sidebarView === 'search' ? 'text-blue-400' : 'text-gray-400'}`}
+                        title="Search"
+                    >
+                        <SearchIcon size={18} />
                     </button>
                     <button
                         onClick={() => setIsTerminalOpen(!isTerminalOpen)}
@@ -313,7 +337,11 @@ export function WorkspaceLayout() {
                                 id="sidebar-panel"
                                 order={1}
                             >
-                                <FileExplorer files={fileTree} onFileSelect={selectFile} />
+                                {sidebarView === 'explorer' ? (
+                                    <FileExplorer files={fileTree} onFileSelect={selectFile} />
+                                ) : (
+                                    <SearchPanel fileTree={fileTree} onOpenFile={openFileByPath} />
+                                )}
                             </Panel>
                             <PanelResizeHandle className="w-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-col-resize" />
                         </>

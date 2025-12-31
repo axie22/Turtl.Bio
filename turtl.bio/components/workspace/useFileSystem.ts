@@ -215,6 +215,35 @@ export function useFileSystem() {
         }
     };
 
+    const findFileNodeByPath = (nodes: FileNode[], searchPath: string): FileNode | null => {
+         // Normalized search: remove leading slash if present to match our recursive structure if needed
+         // But here my fileTree IDs are built as "/Filename" or "/Folder/Filename" from readDirectory
+         // Backend returns "/Filename" or "Folder/Filename". 
+         
+         const normalizedSearch = searchPath.startsWith('/') ? searchPath : '/' + searchPath;
+
+         for (const node of nodes) {
+             if (node.id === normalizedSearch || node.id.endsWith(searchPath)) { // Fuzzy match if absolute path differs slightly
+                 return node;
+             }
+             if (node.children) {
+                 const found = findFileNodeByPath(node.children, searchPath);
+                 if (found) return found;
+             }
+         }
+         return null;
+    };
+
+    const openFileByPath = async (path: string) => {
+        const node = findFileNodeByPath(fileTree, path);
+        if (node && node.type === 'file') {
+            await selectFile(node);
+        } else {
+            console.warn("File not found in current tree:", path);
+            // Optional: visual feedback
+        }
+    };
+
     const selectFile = async (node: FileNode) => {
         if (node.type !== "file") return;
         const handle = node.handle as FileSystemFileHandle;
@@ -406,6 +435,7 @@ export function useFileSystem() {
         splitPane,
         closeTab,
         activateTab,
-        moveTab
+        moveTab,
+        openFileByPath
     };
 }
