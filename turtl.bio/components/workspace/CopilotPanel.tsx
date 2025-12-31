@@ -78,24 +78,27 @@ export function CopilotPanel({ directoryName }: CopilotPanelProps) {
         setIsLoading(true);
 
         // Delay before streaming starts
-        setTimeout(() => {
-            const aiResponses = [
-                "The preclinical toxicology data suggests a potential signal in the hepatic panel. We should cross-reference this with the 21 CFR 312.23(a)(8) requirements for pharmacology and toxicology information.",
-                "For the IND application, ensure the Investigator's Brochure (IB) is updated with the latest in vitro metabolic stability data.",
-                "I've flagged a potential gap in the CMC (Chemistry, Manufacturing, and Controls) section regarding the stability protocol for the clinical batch.",
-                "Based on the mechanism of action, we should anticipate FDA questions regarding off-target effects. I recommend conducting an additional safety pharmacology study.",
-                "The protocol for the Phase 1 study needs to explicitly define the stopping rules for dose escalation as per FDA guidance on identifying safe starting doses.",
-                "Remember to include the Form FDA 1571 and 1572 in Module 1 of the eCTD structure.",
-                "Regarding 21 CFR Part 11.10(e), the key requirement is ensuring that the audit trail captures the exact timestamp of every record creation, modification, or deletion. Your system needs to prevent users from altering these timestamps."
-            ];
-            
-            const isContextQuestion = text.includes("21 CFR Part 11.10(e)");
-            const responseContent = isContextQuestion 
-                ? aiResponses[6] 
-                : aiResponses[Math.floor(Math.random() * (aiResponses.length - 1))];
+        setTimeout(async () => {
+             try {
+                const response = await fetch("/api/copilot/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: text }),
+                });
 
-            streamResponse(responseContent);
-        }, 1000);
+                if (!response.ok) {
+                    throw new Error("Failed to get response");
+                }
+
+                const data = await response.json();
+                streamResponse(data.response);
+            } catch (error) {
+                console.error("Error fetching copilot response:", error);
+                streamResponse("Sorry, I encountered an error processing your request.");
+            }
+        }, 500);
     }, [streamResponse]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
