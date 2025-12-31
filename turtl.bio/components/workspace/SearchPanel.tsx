@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, FileText, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { FileNode } from "./useFileSystem";
@@ -22,12 +22,46 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
 
+    // Dynamic import for pdfjs to avoid SSR issues
+    const getPdfJs = async () => {
+        const pdfjs = await import('pdfjs-dist');
+        // @ts-ignore
+        if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+            pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+        }
+        return pdfjs;
+    };
+
+    const extractPdfText = async (file: File): Promise<string[]> => {
+        try {
+            const pdfjs = await getPdfJs();
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
+            const doc = await loadingTask.promise;
+            
+            let lines: string[] = [];
+
+            for (let i = 1; i <= doc.numPages; i++) {
+                const page = await doc.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map((item: any) => item.str).join(' ');
+                lines.push(pageText);
+            }
+            return lines;
+        } catch (e) {
+            console.error("Failed to parse PDF", e);
+            return [];
+        }
+    };
+
     // Recursive search function
     const searchInFiles = async (nodes: FileNode[], searchQuery: string): Promise<SearchResult[]> => {
         let found: SearchResult[] = [];
         const lowerQuery = searchQuery.toLowerCase();
 
         for (const node of nodes) {
+            if (found.length > 50) break; // Optimization check
+
             if (node.name === ".git" || node.name === "node_modules" || node.name === "dist" || node.name === ".next") {
                 continue;
             }
@@ -45,9 +79,33 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
                     });
                 }
 
-                // Search content (limit to text files)
-                // Simple heuristic: check extension or try reading
-                if (!node.name.endsWith('.png') && !node.name.endsWith('.jpg') && !node.name.endsWith('.jpeg') && !node.name.endsWith('.pdf')) {
+                // Check extension
+                const isPdf = node.name.toLowerCase().endsWith('.pdf');
+                // Allow text files (heuristic) logic
+                const isIgnoredImage = node.name.endsWith('.png') || node.name.endsWith('.jpg') || node.name.endsWith('.jpeg');
+                
+                if (isPdf) {
+                    try {
+                        const fileHandle = node.handle as FileSystemFileHandle;
+                        const file = await fileHandle.getFile();
+                        const lines = await extractPdfText(file);
+                        
+                        for (let i = 0; i < lines.length; i++) {
+                            if (lines[i].toLowerCase().includes(lowerQuery)) {
+                                found.push({
+                                    file_path: node.id,
+                                    // Truncate snippet if too long
+                                    snippet: lines[i].substring(0, 100) + "...", 
+                                    line_num: i + 1 // Actually page number in this simplified logic
+                                });
+                                if (found.filter(f => f.file_path === node.id).length > 5) break; 
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("Error reading PDF:", node.name, err);
+                    }
+                } else if (!isIgnoredImage) {
+                    // Existing text logic
                     try {
                         const fileHandle = node.handle as FileSystemFileHandle;
                         const file = await fileHandle.getFile();
@@ -66,13 +124,10 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
                             }
                         }
                     } catch (err) {
-                        // Ignore read errors (e.g. binary files)
-                        console.warn("Error reading file for search:", node.name, err);
+                       // Silent fail for bin files
                     }
                 }
             }
-            // Limit total results
-            if (found.length > 50) break;
         }
         return found;
     };
@@ -81,6 +136,9 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
         e.preventDefault();
         if (!query.trim()) return;
 
+        console.log("[SearchPanel] Starting search for:", query);
+        console.log("[SearchPanel] FileTree length:", fileTree.length);
+
         setIsLoading(true);
         setHasSearched(true);
         setResults([]);
@@ -88,6 +146,7 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
         try {
             // Run search
             const searchResults = await searchInFiles(fileTree, query);
+            console.log("[SearchPanel] Search finished. Found:", searchResults.length);
             setResults(searchResults);
         } catch (error) {
             console.error("Search failed:", error);
@@ -108,7 +167,7 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
                     <Input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search files..."
+                        placeholder="Search files (incl PDFs)..."
                         className="bg-[#252526] border-[#333] text-sm focus-visible:ring-blue-500/50 h-8"
                         autoFocus
                     />
@@ -154,7 +213,7 @@ export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
                 ) : (
                     <div className="flex flex-col items-center justify-center h-40 text-gray-600 gap-2 p-8 text-center">
                         <Search size={32} className="opacity-20" />
-                        <span className="text-sm">Search for text across all files in your workspace.</span>
+                        <span className="text-sm">Search for text & PDFs across all files.</span>
                     </div>
                 )}
             </div>
