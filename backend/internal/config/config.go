@@ -8,10 +8,10 @@ import (
 )
 
 type Config struct {
-	Port        string
-	AuthUser    string
-	AuthPass    string
-	AuthSecret  string
+	Port       string
+	AuthUser   string
+	AuthPass   string
+	AuthSecret string
 }
 
 func LoadConfig() *Config {
@@ -19,7 +19,7 @@ func LoadConfig() *Config {
 	if err != nil {
 		log.Println("No .env file found, relying on environment variables")
 	}
- 
+
 	return &Config{
 		Port:       getEnv("PORT", "8080"),
 		AuthUser:   getEnv("ALPHA_AUTH_USER", "admin"),

@@ -6,6 +6,7 @@ import (
 
 	"github.com/axie22/turtl/backend/internal/auth"
 	"github.com/axie22/turtl/backend/internal/copilot"
+	"github.com/axie22/turtl/backend/internal/search"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -22,6 +23,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// Copilot
 	copilotHandler := copilot.NewHandler()
 	mux.HandleFunc("/copilot/chat", copilotHandler.HandleChat)
+
+	// Search
+	searchService := search.NewService()
+	searchHandler := search.NewHandler(searchService)
+	mux.HandleFunc("/files/search", searchHandler.HandleSearch)
 
 	// Protected routes example
 	// mux.Handle("/api/protected", authService.Middleware(http.HandlerFunc(protectedHandler)))
