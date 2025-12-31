@@ -340,7 +340,7 @@ export function WorkspaceLayout() {
                                 {sidebarView === 'explorer' ? (
                                     <FileExplorer files={fileTree} onFileSelect={selectFile} />
                                 ) : (
-                                    <SearchPanel onOpenFile={openFileByPath} />
+                                    <SearchPanel fileTree={fileTree} onOpenFile={openFileByPath} />
                                 )}
                             </Panel>
                             <PanelResizeHandle className="w-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-col-resize" />

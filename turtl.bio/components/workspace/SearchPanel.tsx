@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Search, FileText, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { FileNode } from "./useFileSystem";
 
 interface SearchResult {
     file_path: string;
@@ -11,14 +12,70 @@ interface SearchResult {
 }
 
 interface SearchPanelProps {
+    fileTree: FileNode[];
     onOpenFile: (path: string) => void;
 }
 
-export function SearchPanel({ onOpenFile }: SearchPanelProps) {
+export function SearchPanel({ fileTree, onOpenFile }: SearchPanelProps) {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+
+    // Recursive search function
+    const searchInFiles = async (nodes: FileNode[], searchQuery: string): Promise<SearchResult[]> => {
+        let found: SearchResult[] = [];
+        const lowerQuery = searchQuery.toLowerCase();
+
+        for (const node of nodes) {
+            if (node.name === ".git" || node.name === "node_modules" || node.name === "dist" || node.name === ".next") {
+                continue;
+            }
+
+            if (node.type === "folder" && node.children) {
+                const subResults = await searchInFiles(node.children, searchQuery);
+                found = found.concat(subResults);
+            } else if (node.type === "file") {
+                // Search filename
+                if (node.name.toLowerCase().includes(lowerQuery)) {
+                    found.push({
+                        file_path: node.id,
+                        snippet: "Filename match",
+                        line_num: 0
+                    });
+                }
+
+                // Search content (limit to text files)
+                // Simple heuristic: check extension or try reading
+                if (!node.name.endsWith('.png') && !node.name.endsWith('.jpg') && !node.name.endsWith('.jpeg') && !node.name.endsWith('.pdf')) {
+                    try {
+                        const fileHandle = node.handle as FileSystemFileHandle;
+                        const file = await fileHandle.getFile();
+                        const text = await file.text();
+                        
+                        const lines = text.split('\n');
+                        for (let i = 0; i < lines.length; i++) {
+                            if (lines[i].toLowerCase().includes(lowerQuery)) {
+                                found.push({
+                                    file_path: node.id,
+                                    snippet: lines[i].trim(),
+                                    line_num: i + 1
+                                });
+                                // Limit matches per file to avoid spam
+                                if (found.filter(f => f.file_path === node.id).length > 5) break; 
+                            }
+                        }
+                    } catch (err) {
+                        // Ignore read errors (e.g. binary files)
+                        console.warn("Error reading file for search:", node.name, err);
+                    }
+                }
+            }
+            // Limit total results
+            if (found.length > 50) break;
+        }
+        return found;
+    };
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,17 +83,14 @@ export function SearchPanel({ onOpenFile }: SearchPanelProps) {
 
         setIsLoading(true);
         setHasSearched(true);
+        setResults([]);
+
         try {
-            const res = await fetch(`/api/files/search?q=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            if (data.results) {
-                setResults(data.results);
-            } else {
-                setResults([]);
-            }
+            // Run search
+            const searchResults = await searchInFiles(fileTree, query);
+            setResults(searchResults);
         } catch (error) {
             console.error("Search failed:", error);
-            setResults([]);
         } finally {
             setIsLoading(false);
         }
