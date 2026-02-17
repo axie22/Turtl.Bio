@@ -1,52 +1,59 @@
-import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { NextResponse } from 'next/server';
+import { SignJWT } from 'jose';
 
 export async function POST(request: Request) {
-    try {
-        const body = await request.json();
-        const { user, password } = body;
+  try {
+    const body = await request.json();
+    const { user, password } = body;
 
-        const backendUrl = process.env.BACKEND_URL || "http://localhost:8080";
-        const res = await fetch(`${backendUrl}/auth/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ user, password }),
-        });
+    const authUser = process.env.ALPHA_AUTH_USER;
+    const authPass = process.env.ALPHA_AUTH_PASSWORD;
+    const authSecret = process.env.ALPHA_AUTH_SECRET;
 
-        if (!res.ok) {
-            return NextResponse.json(
-                { success: false, message: "Invalid credentials" },
-                { status: res.status }
-            );
-        }
-
-        const data = await res.json();
-
-        if (data.success && data.token) {
-            // Set cookie
-            const cookieStore = await cookies();
-            cookieStore.set("alpha_access_token", data.token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                path: "/",
-                maxAge: 60 * 60 * 24 * 7, // 7 days
-            });
-
-            return NextResponse.json({ success: true });
-        }
-
-        return NextResponse.json(
-            { success: false, message: "Invalid credentials" },
-            { status: 401 }
-        );
-    } catch (error) {
-        console.error("Login error:", error);
-        return NextResponse.json(
-            { success: false, message: "Internal server error" },
-            { status: 500 }
-        );
+    if (!authSecret) {
+      return NextResponse.json(
+        { success: false, message: 'Server configuration error' },
+        { status: 500 }
+      );
     }
+
+    if (user === authUser && password === authPass) {
+      const secret = new TextEncoder().encode(authSecret);
+      const token = await new SignJWT({
+        user,
+        role: 'alpha_user',
+        iss: 'turtl-backend',
+      })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('7d')
+        .sign(secret);
+
+      const response = NextResponse.json({
+        success: true,
+        token,
+      });
+
+      response.cookies.set('alpha_access_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+      });
+
+      return response;
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Invalid credentials' },
+      { status: 401 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: 'Invalid request' },
+      { status: 400 }
+    );
+  }
 }
+
