@@ -1,401 +1,338 @@
 "use client";
 
-import { useState } from "react";
-import React, { DragEvent } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { Sidebar as SidebarIcon, Terminal as TerminalIcon, FolderOpen, Sparkles, X, Search as SearchIcon } from "lucide-react";
-import dynamic from "next/dynamic";
-import { FileExplorer } from "./FileExplorer";
-import { CodeEditor } from "./CodeEditor";
-import { PdfViewer } from "./PdfViewer";
+import { useWorkspace, EVIDENCE_CARDS, WorkspacePhase } from "./useWorkspace";
+import { EvidenceCard } from "./EvidenceCard";
+import { ExplorerPanel } from "./ExplorerPanel";
 import { CopilotPanel } from "./CopilotPanel";
-import { SearchPanel } from "./SearchPanel";
-import { useFileSystem, LayoutNode, FileTab } from "./useFileSystem";
+import { StatusBar } from "./StatusBar";
 
-// --- Recursive Layout Renderer ---
+/* ─── Activity Bar (left icon strip) ─── */
 
-interface LayoutRendererProps {
-    node: LayoutNode;
-    activePaneId: string;
-    onSplit: (targetId: string, direction: 'horizontal' | 'vertical', tabId?: string) => void;
-    onActivatePane: (id: string) => void;
-    onActivateTab: (paneId: string, tabId: string) => void;
-    onCloseTab: (paneId: string, tabId: string) => void;
-    onMoveTab: (sourcePaneId: string, targetPaneId: string, tabId: string) => void;
-    onSave: (content: string) => void;
-}
+const ACTIVITY_ICONS = [
+  { icon: "folder_open", id: "explorer", filled: true },
+  { icon: "search", id: "search" },
+  { icon: "account_tree", id: "tree" },
+  { icon: "pest_control", id: "debug" },
+  { icon: "smart_toy", id: "ai" },
+];
 
-function LayoutRenderer({ node, activePaneId, onSplit, onActivatePane, onActivateTab, onCloseTab, onMoveTab, onSave }: LayoutRendererProps) {
-    if (node.type === 'split') {
-        return (
-            <PanelGroup direction={node.direction}>
-                {node.children.map((child, index) => (
-                    <React.Fragment key={child.id}>
-                        <Panel minSize={10}>
-                            <LayoutRenderer 
-                                node={child} 
-                                activePaneId={activePaneId} 
-                                onSplit={onSplit} 
-                                onActivatePane={onActivatePane}
-                                onActivateTab={onActivateTab}
-                                onCloseTab={onCloseTab}
-                                onMoveTab={onMoveTab}
-                                onSave={onSave}
-                            />
-                        </Panel>
-                        {index < node.children.length - 1 && <PanelResizeHandle className={`bg-[#333] hover:bg-blue-500 transition-colors ${node.direction === 'horizontal' ? 'w-1 cursor-col-resize' : 'h-1 cursor-row-resize'}`} />}
-                    </React.Fragment>
-                ))}
-            </PanelGroup>
-        );
-    }
-    
-    return (
-        <EditorPane 
-            node={node} 
-            isActive={node.id === activePaneId}
-            onSplit={onSplit}
-            onActivatePane={onActivatePane}
-            onActivateTab={onActivateTab}
-            onCloseTab={onCloseTab}
-            onMoveTab={onMoveTab}
-            onSave={onSave}
-        />
-    );
-}
-
-const Terminal = dynamic(() => import("./Terminal").then((mod) => mod.Terminal), {
-    ssr: false,
-    loading: () => <div className="h-full w-full bg-[#1e1e1e] text-white p-2">Loading Terminal...</div>,
-});
-
-function getLanguageFromFilename(filename: string): string {
-    const ext = filename.split('.').pop()?.toLowerCase();
-
-    switch (ext) {
-        case 'js':
-        case 'jsx':
-            return 'javascript';
-        case 'ts':
-        case 'tsx':
-            return 'typescript';
-        case 'css':
-            return 'css';
-        case 'html':
-            return 'html';
-        case 'json':
-            return 'json';
-        case 'md':
-            return 'markdown';
-        case 'py':
-            return 'python';
-        case 'go':
-            return 'go';
-        case 'rs':
-            return 'rust';
-        case 'yaml':
-        case 'yml':
-            return 'yaml';
-        default:
-            if (filename.toLowerCase() === 'dockerfile') return 'dockerfile';
-            return 'plaintext';
-    }
-}
-
-interface EditorPaneProps {
-    node: LayoutNode & { type: 'leaf' };
-    isActive: boolean;
-    onSplit: (targetId: string, direction: 'horizontal' | 'vertical', tabId?: string) => void;
-    onActivatePane: (id: string) => void;
-    onActivateTab: (paneId: string, tabId: string) => void;
-    onCloseTab: (paneId: string, tabId: string) => void;
-    onMoveTab: (sourcePaneId: string, targetPaneId: string, tabId: string) => void;
-    onSave: (content: string) => void;
-}
-
-function EditorPane({ node, isActive, onSplit, onActivatePane, onActivateTab, onCloseTab, onMoveTab, onSave }: EditorPaneProps) {
-    const [dragOverZone, setDragOverZone] = useState<'right' | 'bottom' | 'center' | null>(null);
-
-    const activeTab = node.tabs.find(t => t.id === node.activeTabId);
-
-    const handleTabDragStart = (e: DragEvent, tab: FileTab) => {
-        e.dataTransfer.setData('sourcePaneId', node.id);
-        e.dataTransfer.setData('tabData', JSON.stringify(tab));
-        e.dataTransfer.effectAllowed = 'copyMove';
-    };
-
-    const handleDragOver = (e: DragEvent) => {
-        e.preventDefault();
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const width = rect.width;
-        const height = rect.height;
-
-        if (x > width * 0.75) {
-            setDragOverZone('right');
-        } else if (y > height * 0.75) {
-            setDragOverZone('bottom');
-        } else {
-            setDragOverZone('center');
-        }
-    };
-
-    const handleDrop = (e: DragEvent) => {
-        e.preventDefault();
-        setDragOverZone(null);
-        
-        try {
-            const tabData = JSON.parse(e.dataTransfer.getData('tabData'));
-            const sourcePaneId = e.dataTransfer.getData('sourcePaneId');
-            
-            if (dragOverZone === 'right' || dragOverZone === 'bottom') {
-                const direction = dragOverZone === 'right' ? 'horizontal' : 'vertical';
-                onSplit(node.id, direction, tabData.id);
-            } else if (dragOverZone === 'center') {
-                if (sourcePaneId && tabData.id) {
-                    onMoveTab(sourcePaneId, node.id, tabData.id);
+function ActivityBar({ active }: { active: string }) {
+  return (
+    <aside className="bg-ws-lowest flex flex-col items-center py-4 w-16 shrink-0 z-40">
+      <div className="flex flex-col items-center gap-6 w-full">
+        {ACTIVITY_ICONS.map((item) => {
+          const isActive = item.id === active;
+          return (
+            <div
+              key={item.id}
+              className={`w-full flex justify-center py-2 transition-all cursor-pointer ${
+                isActive
+                  ? "border-l-2 border-ws-teal bg-ws-mid text-ws-teal"
+                  : "text-ws-text/40 hover:text-ws-text/80 hover:bg-ws-mid"
+              }`}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={
+                  isActive
+                    ? { fontVariationSettings: "'FILL' 1" }
+                    : undefined
                 }
-            }
-        } catch (err) {
-            console.error("Failed to parse tab data or handle drop", err);
-        }
-    };
-
-    const handleDragLeave = () => {
-        setDragOverZone(null);
-    };
-
-    return (
-        <div 
-            className={`h-full w-full flex flex-col relative ${isActive ? 'ring-1 ring-blue-500/50' : ''}`}
-            onClick={() => onActivatePane(node.id)}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onDragLeave={handleDragLeave}
-        >
-             {/* Tabs Header */}
-             <div className={`h-9 flex items-center bg-[#111] border-b border-[#333] select-none overflow-x-auto scrollbar-hide`}>
-                {node.tabs.map(tab => (
-                    <div 
-                        key={tab.id}
-                        className={`
-                            h-full px-3 flex items-center gap-2 text-xs border-r border-[#222] min-w-[120px] max-w-[200px] cursor-pointer group
-                            ${tab.id === node.activeTabId ? 'bg-[#1e1e1e] text-white border-t-2 border-t-blue-500' : 'text-gray-500 hover:bg-[#1a1a1a]'}
-                        `}
-                        draggable
-                        onDragStart={(e) => handleTabDragStart(e, tab)}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onActivateTab(node.id, tab.id);
-                        }}
-                    >
-                        <span className="truncate flex-1">
-                            {tab.name}
-                        </span>
-                        {tab.name.endsWith('.pdf') && <span className="text-[9px] px-1 rounded bg-red-500/10 text-red-500">PDF</span>}
-                        <div 
-                            className={`p-0.5 rounded-sm hover:bg-gray-700/50 ${tab.id === node.activeTabId ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onCloseTab(node.id, tab.id);
-                            }}
-                        >
-                            <X size={12} />
-                        </div>
-                    </div>
-                ))}
+              >
+                {item.icon}
+              </span>
             </div>
-
-            {/* Drop Zone Indicators */}
-            {dragOverZone === 'right' && (
-                <div className="absolute inset-y-0 right-0 w-1/4 bg-blue-500/20 z-50 pointer-events-none border-l-2 border-blue-500" />
-            )}
-            {dragOverZone === 'bottom' && (
-                <div className="absolute inset-x-0 bottom-0 h-1/4 bg-blue-500/20 z-50 pointer-events-none border-t-2 border-blue-500" />
-            )}
-
-            {/* Editor Content */}
-            <div className="flex-1 overflow-hidden bg-[#1e1e1e]">
-                {activeTab ? (
-                    activeTab.name.toLowerCase().endsWith('.pdf') ? (
-                         <PdfViewer url={activeTab.objectUrl!} />
-                    ) : (
-                        <CodeEditor
-                            key={activeTab.id}
-                            initialContent={activeTab.content}
-                            language={getLanguageFromFilename(activeTab.name)}
-                            onSave={onSave}
-                        />
-                    )
-                ) : (
-                     <div className="h-full w-full flex items-center justify-center text-gray-600 text-xs uppercase tracking-widest">
-                         No File Open
-                     </div>
-                )}
-            </div>
+          );
+        })}
+      </div>
+      <div className="mt-auto flex flex-col items-center gap-4">
+        <div className="w-8 h-8 rounded-sm bg-ws-highest flex items-center justify-center border border-ws-outline-dim/30">
+          <span className="material-symbols-outlined text-ws-text/60 text-sm">
+            account_circle
+          </span>
         </div>
-    );
+      </div>
+    </aside>
+  );
 }
+
+/* ─── Top Nav Bar ─── */
+
+interface NavTab {
+  id: string;
+  label: string;
+}
+
+const IDLE_TABS: NavTab[] = [];
+const ANALYZING_TABS: NavTab[] = [
+  { id: "explorer", label: "Explorer" },
+  { id: "evidence", label: "Evidence" },
+  { id: "protocols", label: "Protocols" },
+  { id: "archive", label: "Archive" },
+];
+const COMPLETE_TABS: NavTab[] = [
+  { id: "explorer", label: "Explorer" },
+  { id: "search", label: "Search" },
+  { id: "regulatory-ai", label: "Regulatory AI" },
+];
+
+function getNavTabs(phase: WorkspacePhase): NavTab[] {
+  if (phase === "idle") return IDLE_TABS;
+  if (phase === "analyzing") return ANALYZING_TABS;
+  return COMPLETE_TABS;
+}
+
+function TopNavBar({
+  phase,
+  activeTab,
+  setActiveTab,
+}: {
+  phase: WorkspacePhase;
+  activeTab: string;
+  setActiveTab: (t: string) => void;
+}) {
+  const tabs = getNavTabs(phase);
+
+  return (
+    <header className="bg-ws-mid text-ws-teal font-headline font-bold text-sm tracking-tight uppercase border-b border-ws-highest flex justify-between items-center px-4 w-full h-12 z-50 shrink-0">
+      <div className="flex items-center gap-6">
+        <span className="text-lg font-black text-ws-teal font-headline uppercase tracking-wider">
+          Turtl.Bio
+        </span>
+        {tabs.length > 0 && (
+          <nav className="hidden md:flex gap-6 items-center">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`transition-colors duration-150 ${
+                  activeTab === tab.id
+                    ? "text-ws-teal border-b-2 border-ws-teal pb-1"
+                    : "text-ws-text/60 hover:bg-ws-highest hover:text-ws-text"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        )}
+        {phase === "idle" && (
+          <nav className="hidden md:flex items-center gap-4 ml-4">
+            <button className="flex items-center gap-2 p-1.5 hover:bg-ws-highest transition-colors text-ws-text/60">
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <button className="flex items-center gap-2 p-1.5 hover:bg-ws-highest transition-colors text-ws-text/60">
+              <span className="material-symbols-outlined">search</span>
+            </button>
+            <button className="flex items-center gap-2 p-1.5 hover:bg-ws-highest transition-colors text-ws-text/60">
+              <span className="material-symbols-outlined">terminal</span>
+            </button>
+          </nav>
+        )}
+      </div>
+      <div className="flex items-center gap-4">
+        {phase !== "idle" && (
+          <div className="hidden lg:flex items-center bg-ws-lowest px-3 py-1.5 rounded-sm border border-ws-outline-dim/20">
+            <span className="material-symbols-outlined text-ws-text/40 text-sm mr-2">
+              search
+            </span>
+            <input
+              className="bg-transparent border-none focus:ring-0 focus:outline-none text-xs w-48 p-0 text-ws-text font-label"
+              placeholder="Search knowledge base..."
+              type="text"
+            />
+            <span className="text-[10px] text-ws-text/20 font-label ml-2">
+              &#8984;K
+            </span>
+          </div>
+        )}
+        <button className="bg-ws-teal-dark text-ws-on-teal-dark px-3 py-1.5 rounded-sm font-label text-[10px] font-bold tracking-widest hover:shadow-[0_0_12px_0_rgba(0,175,145,0.4)] transition-all flex items-center gap-2">
+          <span className="material-symbols-outlined !text-[14px]">
+            folder_open
+          </span>
+          OPEN FOLDER
+        </button>
+        <div className="flex gap-2">
+          <span className="material-symbols-outlined text-ws-text/60 cursor-pointer hover:text-ws-teal transition-colors">
+            terminal
+          </span>
+          <span className="material-symbols-outlined text-ws-text/60 cursor-pointer hover:text-ws-teal transition-colors">
+            settings
+          </span>
+          <span className="material-symbols-outlined text-ws-text/60 cursor-pointer hover:text-ws-teal transition-colors">
+            help
+          </span>
+          <span className="material-symbols-outlined text-ws-text/60 cursor-pointer hover:text-ws-teal transition-colors">
+            account_circle
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ─── Idle View (Pre-submit center content) ─── */
+
+function IdleView() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden">
+      <div className="w-24 h-24 mb-6 rounded-full bg-ws-mid flex items-center justify-center border border-ws-outline-dim/10">
+        <span className="material-symbols-outlined text-4xl text-ws-outline-dim">
+          find_in_page
+        </span>
+      </div>
+      <h3 className="font-headline text-xl text-ws-text mb-2">
+        Workspace Idle
+      </h3>
+      <p className="text-ws-text-dim max-w-sm text-sm leading-relaxed">
+        Submit a query to surface applicable guidance and precedent within the
+        PSMA-RLT framework.
+      </p>
+      <div className="mt-8 grid grid-cols-2 gap-3 w-full max-w-md">
+        <div className="bg-ws-low p-4 text-left border border-ws-outline-dim/5 rounded-sm">
+          <span className="font-label text-[9px] uppercase text-ws-teal block mb-1">
+            Shortcut
+          </span>
+          <span className="text-xs text-ws-text-dim">
+            Press{" "}
+            <kbd className="bg-ws-highest px-1 rounded text-[10px]">&#8984;</kbd>{" "}
+            +{" "}
+            <kbd className="bg-ws-highest px-1 rounded text-[10px]">Enter</kbd>{" "}
+            to submit
+          </span>
+        </div>
+        <div className="bg-ws-low p-4 text-left border border-ws-outline-dim/5 rounded-sm">
+          <span className="font-label text-[9px] uppercase text-ws-teal block mb-1">
+            Mode
+          </span>
+          <span className="text-xs text-ws-text-dim">
+            Regulatory Interpretation v2.4
+          </span>
+        </div>
+      </div>
+      {/* Ghost watermark */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.02] flex items-center justify-center">
+        <span className="text-[20rem] font-bold select-none text-ws-text">
+          TURTL
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Interpretation Zone (Active/Complete center content) ─── */
+
+function InterpretationZone({
+  phase,
+  visibleCards,
+}: {
+  phase: "analyzing" | "complete";
+  visibleCards: number;
+}) {
+  const isComplete = phase === "complete";
+  const cards = isComplete ? EVIDENCE_CARDS : EVIDENCE_CARDS.slice(0, visibleCards);
+
+  return (
+    <main className="flex-1 overflow-y-auto ws-scrollbar bg-ws-bg p-6">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <header className="border-b border-ws-outline-dim/15 pb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="font-label text-[10px] uppercase tracking-widest text-ws-teal font-bold">
+              Regulatory Intelligence
+            </span>
+            <span className="text-ws-text/20">/</span>
+            <span className="font-label text-[10px] uppercase tracking-widest text-ws-text/40">
+              Interpretation Zone
+            </span>
+          </div>
+          <h1 className="font-headline text-3xl font-extrabold text-ws-text tracking-tight">
+            {isComplete
+              ? "Regulatory Interpretation"
+              : "Nonclinical Study Requirements Evaluation"}
+          </h1>
+          <p className="text-ws-text/60 text-sm mt-2 max-w-2xl leading-relaxed">
+            {isComplete
+              ? "Analysis of sex-specific toxicity requirements"
+              : "System-wide analysis of ICH and FDA guidance regarding sex-specific toxicological studies for targeted oncology radioligands."}
+          </p>
+        </header>
+        <div className="grid gap-6">
+          {cards.map((card) => (
+            <EvidenceCard
+              key={card.id}
+              card={card}
+              variant={isComplete ? "complete" : "active"}
+            />
+          ))}
+          {phase === "analyzing" && visibleCards < EVIDENCE_CARDS.length && (
+            <div className="flex items-center gap-3 py-4 text-ws-text/40">
+              <span className="w-2 h-2 rounded-full bg-ws-teal animate-pulse" />
+              <span className="font-label text-[11px] uppercase tracking-widest">
+                Analyzing regulatory sources...
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+/* ─── Main Layout ─── */
 
 export function WorkspaceLayout() {
-    const {
-        directoryHandle,
-        fileTree,
-        layout,
-        activePaneId,
-        openDirectory,
-        selectFile,
-        saveFile,
-        splitPane,
-        setActivePaneId,
-        closeTab,
-        activateTab,
-        moveTab,
-        openFileByPath
-    } = useFileSystem();
+  const ws = useWorkspace();
 
-    const [sidebarView, setSidebarView] = useState<'explorer' | 'search'>('explorer');
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [isTerminalOpen, setIsTerminalOpen] = useState(true);
-    const [isCopilotOpen, setIsCopilotOpen] = useState(true);
-
-    return (
-        <div className="h-screen w-screen bg-black text-white overflow-hidden flex flex-col">
-            {/* Header / Toolbar Stub */}
-            <div className="h-10 border-b border-[#333] flex items-center px-4 bg-[#1e1e1e] select-none justify-between">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => {
-                            if (sidebarView === 'explorer' && isSidebarOpen) {
-                                setIsSidebarOpen(false);
-                            } else {
-                                setSidebarView('explorer');
-                                setIsSidebarOpen(true);
-                            }
-                        }}
-                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isSidebarOpen && sidebarView === 'explorer' ? 'text-blue-400' : 'text-gray-400'}`}
-                        title="File Explorer"
-                    >
-                        <SidebarIcon size={18} />
-                    </button>
-                    <button
-                        onClick={() => {
-                            if (sidebarView === 'search' && isSidebarOpen) {
-                                setIsSidebarOpen(false);
-                            } else {
-                                setSidebarView('search');
-                                setIsSidebarOpen(true);
-                            }
-                        }}
-                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isSidebarOpen && sidebarView === 'search' ? 'text-blue-400' : 'text-gray-400'}`}
-                        title="Search"
-                    >
-                        <SearchIcon size={18} />
-                    </button>
-                    <button
-                        onClick={() => setIsTerminalOpen(!isTerminalOpen)}
-                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isTerminalOpen ? 'text-blue-400' : 'text-gray-400'}`}
-                        title="Toggle Terminal"
-                    >
-                        <TerminalIcon size={18} />
-                    </button>
-                    <span className="font-bold text-gray-200">
-                        {directoryHandle ? directoryHandle.name : "Turtl.Bio Workspace"}
-                    </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setIsCopilotOpen(!isCopilotOpen)}
-                        className={`p-1 rounded hover:bg-[#333] transition-colors ${isCopilotOpen ? 'text-purple-400' : 'text-gray-400'}`}
-                        title="Toggle AI Copilot"
-                    >
-                        <Sparkles size={18} />
-                    </button>
-                    <button
-                        onClick={openDirectory}
-                        className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-xs rounded text-white font-medium transition-colors"
-                    >
-                        <FolderOpen size={14} />
-                        {directoryHandle ? "Change Folder" : "Open Folder"}
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-hidden">
-                <PanelGroup direction="horizontal" id="root-group">
-
-                    {/* Sidebar: File Explorer */}
-                    {isSidebarOpen && (
-                        <>
-                            <Panel
-                                defaultSize={20}
-                                minSize={10}
-                                maxSize={30}
-                                className="border-r border-[#333]"
-                                id="sidebar-panel"
-                                order={1}
-                            >
-                                {sidebarView === 'explorer' ? (
-                                    <FileExplorer files={fileTree} onFileSelect={selectFile} />
-                                ) : (
-                                    <SearchPanel fileTree={fileTree} onOpenFile={openFileByPath} />
-                                )}
-                            </Panel>
-                            <PanelResizeHandle className="w-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-col-resize" />
-                        </>
-                    )}
-
-                    {/* Main Content: Editor & Terminal */}
-                    <Panel defaultSize={80} id="main-panel" order={2}>
-                        <PanelGroup direction="vertical" id="main-vertical-group">
-
-                            {/* Top: Editor or PDF Viewer (Recursive Layout) */}
-                            <Panel defaultSize={70} minSize={20} id="editor-panel" order={1} className="flex flex-col relative">
-                                <LayoutRenderer 
-                                    node={layout} 
-                                    activePaneId={activePaneId}
-                                    onSplit={splitPane}
-                                    onActivatePane={setActivePaneId}
-                                    onActivateTab={activateTab}
-                                    onCloseTab={closeTab}
-                                    onMoveTab={moveTab}
-                                    onSave={saveFile}
-                                />
-                            </Panel>
-
-                            {/* Bottom: Terminal */}
-                            {isTerminalOpen && (
-                                <>
-                                    <PanelResizeHandle className="h-1 bg-[#333] hover:bg-blue-500 transition-colors cursor-row-resize" />
-                                    <Panel defaultSize={30} minSize={10} id="terminal-panel" order={2}>
-                                        <Terminal />
-                                    </Panel>
-                                </>
-                            )}
-
-                        </PanelGroup>
-                    </Panel>
-
-                    {/* Right Panel: AI Copilot */}
-                    {isCopilotOpen && (
-                        <>
-                            <PanelResizeHandle className="w-1 bg-[#333] hover:bg-purple-500 transition-colors cursor-col-resize" />
-                            <Panel
-                                defaultSize={20}
-                                minSize={15}
-                                maxSize={40}
-                                id="copilot-panel"
-                                order={3}
-                            >
-                                <CopilotPanel directoryName={directoryHandle ? directoryHandle.name : ""} />
-                            </Panel>
-                        </>
-                    )}
-
-                </PanelGroup>
-            </div>
+  return (
+    <div className="h-screen w-screen bg-ws-bg text-ws-text font-body flex flex-col overflow-hidden selection:bg-ws-teal/30">
+      <TopNavBar
+        phase={ws.phase}
+        activeTab={ws.activeNavTab}
+        setActiveTab={ws.setActiveNavTab}
+      />
+      <div className="flex flex-1 overflow-hidden relative">
+        <ActivityBar active="explorer" />
+        <div className="w-64 shrink-0 border-r border-ws-highest/30">
+          <ExplorerPanel />
         </div>
-    );
+
+        {/* Center Content */}
+        <section className="flex-1 bg-ws-bg flex flex-col relative overflow-hidden">
+          {ws.phase === "idle" ? (
+            <>
+              <div className="bg-ws-low px-4 py-2 border-b border-ws-outline-dim/10 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-ws-teal">
+                    data_exploration
+                  </span>
+                  <h1 className="font-label text-[10px] uppercase tracking-[0.2em] font-bold text-ws-text">
+                    Interpretation Zone
+                  </h1>
+                </div>
+              </div>
+              <IdleView />
+            </>
+          ) : (
+            <InterpretationZone
+              phase={ws.phase as "analyzing" | "complete"}
+              visibleCards={ws.visibleCards}
+            />
+          )}
+        </section>
+
+        {/* Right Panel */}
+        <CopilotPanel
+          phase={ws.phase}
+          indication={ws.indication}
+          setIndication={ws.setIndication}
+          modality={ws.modality}
+          setModality={ws.setModality}
+          query={ws.query}
+          setQuery={ws.setQuery}
+          onSubmit={ws.submitQuery}
+        />
+      </div>
+      <StatusBar phase={ws.phase} />
+    </div>
+  );
 }

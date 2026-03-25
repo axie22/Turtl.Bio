@@ -44,6 +44,28 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Workspace design tokens */
+  --color-ws-bg: #10141a;
+  --color-ws-lowest: #0a0e14;
+  --color-ws-low: #181c22;
+  --color-ws-mid: #1c2026;
+  --color-ws-high: #262a31;
+  --color-ws-highest: #31353c;
+  --color-ws-bright: #353940;
+  --color-ws-teal: #54dcbc;
+  --color-ws-teal-dark: #00af91;
+  --color-ws-text: #dfe2eb;
+  --color-ws-text-dim: #bbcac3;
+  --color-ws-outline: #86948e;
+  --color-ws-outline-dim: #3c4a45;
+  --color-ws-on-teal: #00382d;
+  --color-ws-on-teal-dark: #003a2f;
+  --color-ws-error: #ffb4ab;
+  --color-ws-secondary: #a0d0c1;
+  --color-ws-secondary-ctr: #204f43;
+  --font-headline: 'Manrope', sans-serif;
+  --font-label: 'Space Grotesk', sans-serif;
 }
 
 :root {
@@ -123,3 +145,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Workspace: Material Symbols */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}
+
+/* Workspace: Scrollbar */
+.ws-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.ws-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.ws-scrollbar::-webkit-scrollbar-thumb { background: #31353c; border-radius: 2px; }
+.ws-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(84, 220, 188, 0.4); }
