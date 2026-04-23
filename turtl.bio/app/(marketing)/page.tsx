@@ -4,7 +4,6 @@ import {
   Section,
   SectionHeader,
   MetaStrip,
-  Cite,
 } from "@/components/marketing/primitives";
 
 export default function LandingPage() {
@@ -12,58 +11,32 @@ export default function LandingPage() {
     <div>
       {/* 01 — HERO */}
       <Section number="01" label="Index" className="pt-20 md:pt-28 pb-16 md:pb-24">
-        <div className="grid md:grid-cols-12 gap-10 md:gap-16">
-          <div className="md:col-span-7">
-            <h1 className="text-[44px] leading-[1.04] md:text-[72px] md:leading-[0.98] tracking-[-0.02em] font-normal">
-              The reasoning layer{" "}
-              <span className="font-serif italic text-[#0f8f77]">pre-IND</span>{" "}
-              biotech teams{" "}
-              <span className="font-serif italic">can&rsquo;t afford</span>{" "}
-              to hire.
-            </h1>
-            <p className="mt-8 max-w-[560px] text-[17px] leading-relaxed text-zinc-600">
-              A structured workspace for interpreting FDA guidance and
-              precedent against a specific product profile. Sourced and
-              auditable by construction &mdash; sitting between a{" "}
-              <span className="text-zinc-950">$500/hr consultant</span>{" "}
-              and a <span className="text-zinc-950">generic LLM</span>.
-              Built for the first IND, with no dedicated regulatory hire.
-            </p>
+        <div className="max-w-[900px]">
+          <h1 className="text-[44px] leading-[1.04] md:text-[72px] md:leading-[0.98] tracking-[-0.02em] font-normal">
+            The reasoning layer{" "}
+            <span className="text-[#0f8f77]">pre-IND biotech teams</span>{" "}
+            can&rsquo;t afford to hire.
+          </h1>
+          <p className="mt-8 max-w-[620px] text-[17px] leading-relaxed text-zinc-600">
+            A structured workspace for interpreting FDA guidance and precedent
+            against a specific product profile. Sourced and auditable by
+            construction.
+          </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-3">
-              <Link
-                href="/workspace"
-                className="inline-flex items-center gap-2 bg-zinc-950 text-white px-5 py-3 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
-              >
-                See the workspace
-                <span aria-hidden className="font-mono text-xs">&rarr;</span>
-              </Link>
-              <Link
-                href="mailto:hl4929@nyu.edu"
-                className="inline-flex items-center gap-2 border border-zinc-300 text-zinc-950 px-5 py-3 text-sm font-medium hover:border-zinc-950 transition-colors"
-              >
-                Request alpha access
-              </Link>
-            </div>
-          </div>
-
-          <div className="md:col-span-5 md:pl-8 md:border-l border-zinc-200">
-            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400 mb-4">
-              Positioning
-            </div>
-            <p className="text-[15px] leading-relaxed text-zinc-700">
-              <span className="text-zinc-950 font-medium">
-                ~90% of regulatory affairs work is grey-zone interpretation.
-              </span>{" "}
-              Early teams lack the pattern recognition and precedent access to
-              make confident applicability decisions before writing anything.
-            </p>
-            <Cite className="mt-4">
-              Dan Mannix, SVP Regulatory Affairs, IO Biotech
-              <span className="block text-zinc-400">
-                30+ years &middot; BMS / MacroGenics / IO Biotech
-              </span>
-            </Cite>
+          <div className="mt-10 flex flex-wrap items-center gap-3">
+            <Link
+              href="/workspace"
+              className="inline-flex items-center gap-2 bg-zinc-950 text-white px-5 py-3 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
+            >
+              See the workspace
+              <span aria-hidden className="font-mono text-xs">&rarr;</span>
+            </Link>
+            <Link
+              href="mailto:hl4929@nyu.edu"
+              className="inline-flex items-center gap-2 border border-zinc-300 text-zinc-950 px-5 py-3 text-sm font-medium hover:border-zinc-950 transition-colors"
+            >
+              Request alpha access
+            </Link>
           </div>
         </div>
 
@@ -89,13 +62,8 @@ export default function LandingPage() {
       >
         <SectionHeader
           eyebrow="The problem, concretely"
-          title={
-            <>
-              A prostate cancer drug.{" "}
-              <span className="font-serif italic">Do we need female-animal tox studies?</span>
-            </>
-          }
-          description="Every IND team hits questions like this. The answer lives in conditional FDA language and scattered precedent — not the things a spreadsheet or a generic model solves."
+          title="A prostate cancer drug. Do we need female-animal tox studies?"
+          description="The answer lives in conditional FDA language and scattered precedent, not in a spreadsheet or a generic model."
         />
 
         <div className="mt-12 grid md:grid-cols-2 gap-0 border border-zinc-200">
@@ -129,8 +97,8 @@ export default function LandingPage() {
                   D+4
                 </span>
                 <span>
-                  Calls a consultant at <span className="text-zinc-950">$300&ndash;500/hr</span>. Gets
-                  &ldquo;here are the considerations,&rdquo; not a direct answer.
+                  Calls a consultant at <span className="text-zinc-950">$300&ndash;500/hr</span>.
+                  Gets &ldquo;here are the considerations,&rdquo; not a direct answer.
                 </span>
               </li>
               <li className="flex gap-4">
@@ -199,15 +167,14 @@ export default function LandingPage() {
       <Section className="py-24 md:py-32 border-t border-zinc-200">
         <figure className="max-w-4xl">
           <blockquote className="font-serif text-[36px] md:text-[56px] leading-[1.08] tracking-[-0.01em] text-zinc-950">
-            &ldquo;90% of what&rsquo;s done is{" "}
-            <span className="italic">grey zone</span>.&rdquo;
+            &ldquo;90% of what&rsquo;s done is grey zone.&rdquo;
           </blockquote>
           <figcaption className="mt-8 pt-6 border-t border-zinc-200 font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">
             <span className="text-zinc-950">Dan Mannix</span>
             <span className="mx-2 text-zinc-300">/</span>
             SVP Regulatory Affairs, IO Biotech
             <span className="mx-2 text-zinc-300">/</span>
-            30+ years, BMS / MacroGenics
+            30+ years, BMS, MacroGenics
           </figcaption>
         </figure>
       </Section>
@@ -220,13 +187,8 @@ export default function LandingPage() {
       >
         <SectionHeader
           eyebrow="How the workspace reasons"
-          title={
-            <>
-              The structure <span className="font-serif italic">is</span>{" "}
-              the product.
-            </>
-          }
-          description="The differentiator is not proprietary data — FDA guidance, ICH guidelines, and approval packages are public. The differentiator is how that data is curated and applied."
+          title="The structure is the product."
+          description="FDA guidance, ICH guidelines, and approval packages are public. The differentiator is how that data is curated and applied."
         />
 
         <div className="mt-14 grid md:grid-cols-2 gap-px bg-zinc-200 border border-zinc-200">
@@ -234,31 +196,31 @@ export default function LandingPage() {
             {
               n: "01",
               title: "Structured intake",
-              body: "Before any model touches the question, the workspace captures product profile — modality, indication, patient population, development stage. This routes to the right conditional logic.",
+              body: "Captures modality, indication, population, and stage before any model touches the question. Routes to the right conditional logic.",
               example: "INPUT: prostate cancer · small molecule · male-only · pre-IND",
             },
             {
               n: "02",
               title: "Curated reasoning logic",
-              body: "Expert-validated decision paths for which ICH clauses are conditional, which comparators are relevant for which profiles, and what FDA has historically accepted.",
-              example: "PATH: ICH S9 §3.1 → applies to oncology → males-only eligible",
+              body: "Expert-validated decision paths. Which ICH clauses are conditional, which comparators apply to which profiles, what FDA has historically accepted.",
+              example: "PATH: ICH S9 §3.1 → oncology → males-only eligible",
             },
             {
               n: "03",
               title: "Precedent surfacing",
-              body: "Comparable approved drugs, FDA review documents, and advisory committee outcomes surfaced by product-profile match — not keyword search.",
-              example: "MATCH: Pluvicto, Xtandi — male-only tox accepted",
+              body: "Comparable approvals matched by product profile. Tied to the actual FDA review documents, not keyword search.",
+              example: "MATCH: Pluvicto, Xtandi → male-only tox accepted",
             },
             {
               n: "04",
               title: "Auditability by construction",
-              body: "Sourcing is tied to the reasoning path structurally, not by asking the model to cite sources. Every step carries its citation with it.",
+              body: "Sources tied to the reasoning path structurally. Every step carries its citation with it.",
               example: "TRACE: clause → condition → comparator → outcome",
             },
           ].map((item) => (
             <div
               key={item.n}
-              className="bg-white p-8 md:p-10 flex flex-col justify-between min-h-[260px] hover:bg-[#fafafa] transition-colors"
+              className="bg-white p-8 md:p-10 flex flex-col justify-between min-h-[240px] hover:bg-[#fafafa] transition-colors"
             >
               <div>
                 <div className="flex items-center justify-between mb-6">
@@ -290,13 +252,8 @@ export default function LandingPage() {
       >
         <SectionHeader
           eyebrow="Why generic AI doesn't solve this"
-          title={
-            <>
-              A <span className="font-serif italic">locally-run</span> model
-              still doesn&rsquo;t know which ICH clauses are conditional.
-            </>
-          }
-          description="Enterprise subscriptions and local models solve data privacy. They do not solve the knowledge problem. The moat is structured curation — not the model."
+          title="A locally-run model still doesn't know which ICH clauses are conditional."
+          description="Enterprise subscriptions and local models solve data privacy. They do not solve the knowledge problem."
         />
 
         <div className="mt-12 border border-zinc-200 overflow-hidden">
@@ -319,23 +276,23 @@ export default function LandingPage() {
             },
             {
               dim: "Knowledge applied",
-              ai: "Training data — broad, unstructured, possibly stale",
+              ai: "Training data. Broad, unstructured, possibly stale.",
               turtl: "Curated regulatory reasoning logic validated by domain experts",
             },
             {
               dim: "Precedent access",
-              ai: "None — doesn't know Pluvicto had a male-only tox package",
+              ai: "None. Doesn't know Pluvicto had a male-only tox package.",
               turtl: "Comparable approvals surfaced by profile match",
             },
             {
               dim: "Auditability",
-              ai: "Model asked to cite sources — unreliable, can hallucinate",
+              ai: "Model asked to cite sources. Unreliable, can hallucinate.",
               turtl: "Sources structurally tied to each reasoning step",
             },
             {
               dim: "Failure mode",
-              ai: "Wrong answer delivered confidently — can misdirect for months",
-              turtl: "Explicit gaps flagged; scope of uncertainty shown",
+              ai: "Wrong answer delivered confidently. Can misdirect for months.",
+              turtl: "Explicit gaps flagged. Scope of uncertainty shown.",
             },
           ].map((row, i) => (
             <div
@@ -366,12 +323,7 @@ export default function LandingPage() {
       >
         <SectionHeader
           eyebrow="Where we sit"
-          title={
-            <>
-              Too frequent for a consultant. Too consequential for a{" "}
-              <span className="font-serif italic">general model.</span>
-            </>
-          }
+          title="Too frequent for a consultant. Too consequential for a general model."
         />
 
         <div className="mt-14">
@@ -389,41 +341,29 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-3 mt-4">
-            <div className="pr-6">
+            <div>
               <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">
                 Consultants
               </div>
               <div className="mt-1 text-[13px] text-zinc-400 font-mono">
-                $300–500/hr
+                $300&ndash;500/hr
               </div>
-              <p className="mt-3 text-[13px] leading-relaxed text-zinc-600">
-                Strategic and high-stakes. Too expensive for routine questions.
-                Back away from committing to decisions.
-              </p>
             </div>
-            <div className="px-6 text-center">
+            <div className="text-center">
               <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#0f8f77]">
                 Turtl.Bio
               </div>
               <div className="mt-1 text-[13px] text-zinc-400 font-mono">
-                $250–500/mo
+                $250&ndash;500/mo
               </div>
-              <p className="mt-3 text-[13px] leading-relaxed text-zinc-600">
-                Structured, sourced reasoning for day-to-day applicability
-                calls. Less than one hour of consultant time.
-              </p>
             </div>
-            <div className="pl-6 text-right">
+            <div className="text-right">
               <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-zinc-500">
                 Generic AI
               </div>
               <div className="mt-1 text-[13px] text-zinc-400 font-mono">
                 Free / flat
               </div>
-              <p className="mt-3 text-[13px] leading-relaxed text-zinc-600">
-                Broad answers, no product-specific reasoning, no precedent
-                access, hallucinated citations.
-              </p>
             </div>
           </div>
         </div>
@@ -437,23 +377,16 @@ export default function LandingPage() {
       >
         <SectionHeader
           eyebrow="Who this is for"
-          title={
-            <>
-              Founder-scientist or sole RA/CMC lead at a{" "}
-              <span className="font-serif italic">first-IND</span> US biotech.
-            </>
-          }
-          description="The person who is simultaneously the scientist, the strategist, and the regulatory lead — patching the gap with Google searches, scattered PDFs, and expensive consultant calls for questions that shouldn't require a consultant."
+          title="Founder-scientist or sole RA/CMC lead at a first-IND US biotech."
+          description="The person who is simultaneously the scientist, the strategist, and the regulatory lead, patching the gap with Google searches, scattered PDFs, and expensive consultant calls."
         />
 
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200">
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 border border-zinc-200">
           {[
             ["Company size", "< 50 people"],
             ["Stage", "Pre-IND through first filing"],
             ["Regulatory staff", "0–1 dedicated hire"],
-            ["Current budget", "$300–500/hr consultant rates"],
-            ["Geography", "US-based (FDA)"],
-            ["Decision maker", "RA/CMC lead or founder-scientist"],
+            ["Budget today", "$300–500/hr consultants"],
           ].map(([label, value]) => (
             <div key={label} className="bg-white p-6 md:p-7">
               <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400 mb-3">
@@ -477,15 +410,15 @@ export default function LandingPage() {
           <div className="md:col-span-8">
             <h2 className="text-[40px] md:text-[64px] leading-[1.02] tracking-[-0.02em] font-normal">
               Working on your first IND?{" "}
-              <span className="font-serif italic text-[#0f8f77]">
+              <span className="text-[#0f8f77]">
                 We&rsquo;re talking to 15 teams this sprint.
               </span>
             </h2>
           </div>
           <div className="md:col-span-4">
             <p className="text-[15px] leading-relaxed text-zinc-600 mb-6">
-              We&rsquo;re not pitching. We have a learning agenda — structured
-              discovery, one willing pilot, and honest product feedback.
+              We have a learning agenda, not a growth agenda. Honest product
+              feedback is more useful than a sales pitch.
             </p>
             <Link
               href="mailto:hl4929@nyu.edu"
@@ -496,56 +429,6 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
-      </Section>
-
-      {/* 09 — SOURCES */}
-      <Section
-        number="09"
-        label="Sources"
-        className="py-16 md:py-20 border-t border-zinc-200"
-      >
-        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400 mb-6">
-          Grounding &amp; citations
-        </div>
-        <ul className="space-y-3 text-[13px] leading-relaxed text-zinc-600 max-w-3xl">
-          <li className="flex gap-4">
-            <span className="font-mono text-zinc-400 w-8 shrink-0">01</span>
-            <span>
-              <span className="text-zinc-950">Dan Mannix</span>, SVP Regulatory
-              Affairs, IO Biotech. Discovery interview, 2026.
-            </span>
-          </li>
-          <li className="flex gap-4">
-            <span className="font-mono text-zinc-400 w-8 shrink-0">02</span>
-            <span>
-              <span className="text-zinc-950">ICH S6(R1)</span> &mdash; Preclinical
-              Safety Evaluation of Biotechnology-Derived Pharmaceuticals.
-            </span>
-          </li>
-          <li className="flex gap-4">
-            <span className="font-mono text-zinc-400 w-8 shrink-0">03</span>
-            <span>
-              <span className="text-zinc-950">ICH S9</span> &mdash; Nonclinical
-              Evaluation for Anticancer Pharmaceuticals.
-            </span>
-          </li>
-          <li className="flex gap-4">
-            <span className="font-mono text-zinc-400 w-8 shrink-0">04</span>
-            <span>
-              <span className="text-zinc-950">Pluvicto</span> &amp;{" "}
-              <span className="text-zinc-950">Xtandi</span> FDA approval review
-              packages — male-only tox precedent.
-            </span>
-          </li>
-          <li className="flex gap-4">
-            <span className="font-mono text-zinc-400 w-8 shrink-0">05</span>
-            <span>
-              <span className="text-zinc-950">Turtl.Bio Discovery Synthesis</span>{" "}
-              — 10+ structured interviews with RA professionals, CMC leads,
-              and first-IND founders.
-            </span>
-          </li>
-        </ul>
       </Section>
     </div>
   );
