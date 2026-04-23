@@ -98,7 +98,7 @@ export function Cite({
         className
       )}
     >
-      &mdash;&nbsp;{children}
+      {children}
     </figcaption>
   );
 }

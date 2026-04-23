@@ -24,7 +24,7 @@ const TEAM: TeamMember[] = [
     image: "/Anthony.jpeg",
     linkedin: "https://www.linkedin.com/in/hyunjun-lee-990021248/",
     pastExperience: ["New York University"],
-    bio: "Anthony leads product discovery and user research at Turtl.Bio. With a background in business, he focuses on understanding how early-stage biotech teams navigate regulatory uncertainty and translating those insights into clear, usable product direction.",
+    bio: "Anthony leads product discovery and user research at Turtl.Bio.",
   },
   {
     name: "Sabrina Wu",
@@ -32,7 +32,7 @@ const TEAM: TeamMember[] = [
     image: "/Sabrina.jpeg",
     linkedin: "https://www.linkedin.com/in/jingshu-wu2024/",
     pastExperience: ["UCLA", "The Mind Research Network"],
-    bio: "Sabrina drives product strategy and execution at Turtl.Bio. With experience across research and product management, she ensures the platform is grounded in real scientific workflows and solves meaningful problems for researchers and biotech teams.",
+    bio: "Sabrina drives product strategy and execution at Turtl.Bio.",
   },
   {
     name: "Alexander Xie",
@@ -40,7 +40,7 @@ const TEAM: TeamMember[] = [
     image: "/Alex.jpeg",
     linkedin: "https://linkedin.com/in/alexanderxie04",
     pastExperience: ["Amazon", "Fortinet"],
-    bio: "Alexander leads engineering and system architecture at Turtl.Bio. Drawing on experience from Amazon and Fortinet, he focuses on building scalable, reliable infrastructure and defining the right level of technical modeling to support complex regulatory reasoning.",
+    bio: "Alexander leads engineering and system architecture at Turtl.Bio.",
   },
   {
     name: "Sam",
@@ -48,15 +48,7 @@ const TEAM: TeamMember[] = [
     image: "/Sam.jpeg",
     linkedin: "https://www.linkedin.com/in/sam-mathew-2b147526a/",
     pastExperience: ["HealthWorks for Northern Virginia"],
-    bio: "Sam leads outreach and strategic partnerships at Turtl.Bio. He works closely with founders, researchers, and advisors to understand industry needs and help shape how the platform supports early-stage biotech teams.",
-  },
-  {
-    name: "Grace",
-    role: "Full-Stack Engineering",
-    image: "/Grace.jpeg",
-    linkedin: "https://www.linkedin.com/in/gracehe04/",
-    pastExperience: ["Nike"],
-    bio: "Grace builds the core frontend and backend systems at Turtl.Bio. With a strong full-stack background, she focuses on creating intuitive, reliable user experiences that support complex workflows without adding unnecessary friction.",
+    bio: "Sam leads outreach and strategic partnerships at Turtl.Bio.",
   },
 ];
 
@@ -74,12 +66,12 @@ const PIVOT_ROWS: { dim: string; before: string; after: string }[] = [
   {
     dim: "Role of precedent",
     before: "Reference material for drafting",
-    after: "Critical input for interpretation — currently fragmented and manually managed",
+    after: "Critical input for interpretation. Currently fragmented and manually managed.",
   },
   {
     dim: "Competitor frame",
     before: "Veeva, Certara (submission tools)",
-    after: "Consultants + spreadsheets + generic LLMs for day-to-day decisions",
+    after: "Consultants, spreadsheets, and generic LLMs for day-to-day decisions",
   },
   {
     dim: "Value delivered",
@@ -97,16 +89,14 @@ export default function AboutPage() {
           <div className="md:col-span-8">
             <h1 className="text-[40px] md:text-[64px] leading-[1.03] tracking-[-0.02em] font-normal text-zinc-950">
               We give pre-IND biotech teams the{" "}
-              <span className="font-serif italic text-[#0f8f77]">
-                regulatory reasoning layer
-              </span>{" "}
+              <span className="text-[#0f8f77]">regulatory reasoning layer</span>{" "}
               they can&rsquo;t afford to hire.
             </h1>
             <p className="mt-8 max-w-[620px] text-[17px] leading-relaxed text-zinc-600">
               A 20-person team without a dedicated regulatory hire shouldn&rsquo;t
               need a $400/hr phone call to get a usable, auditable answer.
               Turtl.Bio is a structured interpretation workspace for FDA guidance
-              and precedent &mdash; anchored to a specific product profile, sourced
+              and precedent, anchored to a specific product profile and sourced
               by construction.
             </p>
           </div>
@@ -136,7 +126,7 @@ export default function AboutPage() {
                   Sprint goal
                 </dt>
                 <dd className="text-zinc-950 mt-1">
-                  15 structured discovery conversations + one pilot team
+                  15 structured discovery conversations, one pilot team
                 </dd>
               </div>
               <div>
@@ -158,21 +148,15 @@ export default function AboutPage() {
       >
         <SectionHeader
           eyebrow="How we got here"
-          title={
-            <>
-              We expected drafting to be the bottleneck.{" "}
-              <span className="font-serif italic">It wasn&rsquo;t.</span>
-            </>
-          }
-          description="Our first product framing was a broad Compliance & Regulatory Intelligence platform — pathway mapping, drafting, submissions, post-market surveillance. Discovery retired that framing."
+          title="We expected drafting to be the bottleneck. It wasn't."
+          description="Our first framing was a broad Compliance and Regulatory Intelligence platform: pathway mapping, drafting, submissions, post-market surveillance. Discovery retired that framing."
         />
 
         <figure className="mt-12">
           <blockquote className="font-serif text-[28px] md:text-[40px] leading-[1.12] tracking-[-0.01em] text-zinc-950 max-w-3xl">
-            &ldquo;We expected drafting to be the bottleneck. Interviews revealed teams
-            aren&rsquo;t stuck writing &mdash; they&rsquo;re stuck{" "}
-            <span className="italic">deciding what applies</span> before they write
-            anything.&rdquo;
+            &ldquo;We expected drafting to be the bottleneck. Interviews revealed
+            teams aren&rsquo;t stuck writing. They&rsquo;re stuck deciding what
+            applies before they write anything.&rdquo;
           </blockquote>
           <Cite className="mt-6">Turtl.Bio Discovery Synthesis, 2026</Cite>
         </figure>
@@ -218,29 +202,24 @@ export default function AboutPage() {
       >
         <SectionHeader
           eyebrow="How we work"
-          title={
-            <>
-              Intellectual honesty is a{" "}
-              <span className="font-serif italic">core operating principle.</span>
-            </>
-          }
+          title="Intellectual honesty is a core operating principle."
         />
         <div className="mt-14 grid md:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200">
           {[
             {
               n: "01",
               t: "Show evidence, not summaries",
-              b: "Every claim is tied to a specific interview, clause, or approval package. We don't say \"we validated\" — we show what we heard and from whom.",
+              b: "Every claim is tied to a specific interview, clause, or approval package. We show what we heard and from whom.",
             },
             {
               n: "02",
               t: "Name the scope, and the gap",
-              b: "We don't promise generalization to modalities we haven't tested. Today that means small molecules and radioligand therapies. Cell & gene comes next.",
+              b: "We don't promise generalization to modalities we haven't tested. Today that means small molecules and radioligand therapies.",
             },
             {
               n: "03",
               t: "No replacing consultants",
-              b: "We sit between consultants and generic AI. Consultants own the high-stakes strategic work — and are a distribution channel, not a target.",
+              b: "We sit between consultants and generic AI. Consultants own the high-stakes strategic work and are a distribution channel, not a target.",
             },
           ].map((p) => (
             <div key={p.n} className="bg-white p-8 md:p-10">
@@ -266,16 +245,11 @@ export default function AboutPage() {
       >
         <SectionHeader
           eyebrow="Team"
-          title={
-            <>
-              Built by a small team in{" "}
-              <span className="font-serif italic">New York.</span>
-            </>
-          }
-          description="Product, engineering, and outreach — working directly with regulatory leads, founder-scientists, and CMC consultants to shape what gets built next."
+          title="Built by a small team in New York."
+          description="Product, engineering, and outreach. Working directly with regulatory leads, founder-scientists, and CMC consultants to shape what gets built next."
         />
 
-        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-zinc-200 border border-zinc-200">
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 border border-zinc-200">
           {TEAM.map((member) => (
             <div
               key={member.name}
@@ -287,7 +261,7 @@ export default function AboutPage() {
                     src={member.image}
                     alt={member.name}
                     fill
-                    sizes="(max-width: 768px) 50vw, 20vw"
+                    sizes="(max-width: 768px) 50vw, 25vw"
                     className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
                   />
                 )}
@@ -330,9 +304,7 @@ export default function AboutPage() {
           <div className="md:col-span-8">
             <h2 className="text-[36px] md:text-[56px] leading-[1.04] tracking-[-0.02em] font-normal text-zinc-950">
               Working on your first IND, or consulting for a team that is?{" "}
-              <span className="font-serif italic text-[#0f8f77]">
-                Let&rsquo;s talk.
-              </span>
+              <span className="text-[#0f8f77]">Let&rsquo;s talk.</span>
             </h2>
           </div>
           <div className="md:col-span-4">
