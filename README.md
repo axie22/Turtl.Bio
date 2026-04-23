@@ -1,6 +1,6 @@
 # Turtl.Bio
 
-[Live Deployment](https://turtl-bio-p8aqj.ondigitalocean.app/)
+[Live Deployment](https://turtl-bio.vercel.app/)
 
 **A structured workspace for interpreting FDA guidance and regulatory precedent early.**
 
@@ -13,7 +13,6 @@ Turtl.Bio helps preclinical biotech teams preparing their first IND understand *
 - A **decision-support workspace** for regulatory interpretation
 - Designed for **early-stage, preclinical biotech teams**
 - Helps teams reason about:
-
   - which guidance applies
   - under what conditions
   - based on product modality and precedent
