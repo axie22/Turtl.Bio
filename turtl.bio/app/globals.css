@@ -66,6 +66,16 @@
   --color-ws-secondary-ctr: #204f43;
   --font-headline: 'Manrope', sans-serif;
   --font-label: 'Space Grotesk', sans-serif;
+  --font-serif: var(--font-instrument-serif);
+
+  /* Marketing design tokens */
+  --color-ink: #0b0e13;
+  --color-ink-2: #50555f;
+  --color-ink-3: #868b94;
+  --color-rule: #e5e7eb;
+  --color-rule-strong: #0b0e13;
+  --color-surface-alt: #fafafa;
+  --color-accent: #0f8f77;
 }
 
 :root {

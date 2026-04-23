@@ -1,22 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Section,
+  SectionHeader,
+  Cite,
+} from "@/components/marketing/primitives";
 import { Linkedin } from "lucide-react";
 
 interface TeamMember {
@@ -32,209 +20,336 @@ interface TeamMember {
 const TEAM: TeamMember[] = [
   {
     name: "Anthony Lee",
-    role: "Product & Discovery Lead",
+    role: "Product & Discovery",
     image: "/Anthony.jpeg",
     linkedin: "https://www.linkedin.com/in/hyunjun-lee-990021248/",
     pastExperience: ["New York University"],
-    bio: "Anthony leads product discovery and user research at Turtl.Bio. \
-          With a background in business, he focuses on understanding \
-          how early-stage biotech teams navigate regulatory uncertainty and translating \
-          those insights into clear, usable product direction.",
+    bio: "Anthony leads product discovery and user research at Turtl.Bio. With a background in business, he focuses on understanding how early-stage biotech teams navigate regulatory uncertainty and translating those insights into clear, usable product direction.",
   },
   {
     name: "Sabrina Wu",
-    role: "Product Lead",
+    role: "Product",
     image: "/Sabrina.jpeg",
     linkedin: "https://www.linkedin.com/in/jingshu-wu2024/",
     pastExperience: ["UCLA", "The Mind Research Network"],
-    bio: "Sabrina drives product strategy and execution at Turtl.Bio. \
-          With experience across research and product management, she ensures the platform \
-          is grounded in real scientific workflows and solves meaningful problems for researchers \
-          and biotech teams.",
+    bio: "Sabrina drives product strategy and execution at Turtl.Bio. With experience across research and product management, she ensures the platform is grounded in real scientific workflows and solves meaningful problems for researchers and biotech teams.",
   },
   {
     name: "Alexander Xie",
-    role: "Engineering Lead",
+    role: "Engineering",
     image: "/Alex.jpeg",
     linkedin: "https://linkedin.com/in/alexanderxie04",
     pastExperience: ["Amazon", "Fortinet"],
-    bio: "Alexander leads engineering and system architecture at Turtl.Bio. \
-          Drawing on experience from Amazon and Fortinet, he focuses on building scalable, \
-          reliable infrastructure and defining the right level of technical modeling to support \
-          complex regulatory reasoning.",
+    bio: "Alexander leads engineering and system architecture at Turtl.Bio. Drawing on experience from Amazon and Fortinet, he focuses on building scalable, reliable infrastructure and defining the right level of technical modeling to support complex regulatory reasoning.",
   },
   {
     name: "Sam",
-    role: "Outreach & Strategy Lead",
+    role: "Outreach & Strategy",
     image: "/Sam.jpeg",
     linkedin: "https://www.linkedin.com/in/sam-mathew-2b147526a/",
     pastExperience: ["HealthWorks for Northern Virginia"],
-    bio: "Sam leads outreach and strategic partnerships at Turtl.Bio. He works closely with founders, \
-          researchers, and advisors to understand industry needs and help shape how the platform supports\
-          early-stage biotech teams.",
+    bio: "Sam leads outreach and strategic partnerships at Turtl.Bio. He works closely with founders, researchers, and advisors to understand industry needs and help shape how the platform supports early-stage biotech teams.",
   },
   {
     name: "Grace",
-    role: "Full Stack Engineer",
+    role: "Full-Stack Engineering",
     image: "/Grace.jpeg",
     linkedin: "https://www.linkedin.com/in/gracehe04/",
     pastExperience: ["Nike"],
-    bio: "Grace builds the core frontend and backend systems at Turtl.Bio. \
-          With a strong full-stack background, she focuses on creating intuitive, \
-          reliable user experiences that support complex workflows without adding unnecessary friction.",
+    bio: "Grace builds the core frontend and backend systems at Turtl.Bio. With a strong full-stack background, she focuses on creating intuitive, reliable user experiences that support complex workflows without adding unnecessary friction.",
+  },
+];
+
+const PIVOT_ROWS: { dim: string; before: string; after: string }[] = [
+  {
+    dim: "Core user pain",
+    before: "Finding guidance & writing faster",
+    after: "Interpreting conditional requirements given limited internal regulatory depth",
+  },
+  {
+    dim: "What the product does",
+    before: "Automated drafting, streamlined submissions",
+    after: "Helps teams interpret what FDA guidance means for their specific product",
+  },
+  {
+    dim: "Role of precedent",
+    before: "Reference material for drafting",
+    after: "Critical input for interpretation — currently fragmented and manually managed",
+  },
+  {
+    dim: "Competitor frame",
+    before: "Veeva, Certara (submission tools)",
+    after: "Consultants + spreadsheets + generic LLMs for day-to-day decisions",
+  },
+  {
+    dim: "Value delivered",
+    before: "Time savings on document production",
+    after: "Reducing early uncertainty and misapplication of guidance",
   },
 ];
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-slate-50 dark:to-slate-950/50">
-      {/* Hero Section */}
-      <section className="container py-16 text-center mx-auto px-4 max-w-4xl">
-        <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
-          Building the OS for <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">
-            Biological Intelligence
-          </span>
-        </h1>
-      </section>
-
-      {/* Mission Section */}
-      <section className="container mx-auto px-4 max-w-3xl mb-16 text-center">
-        <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
-          <h2 className="text-2xl font-bold tracking-tight mb-4">
-            Our Mission
-          </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Small biotech companies struggle with fragmented tools and complex
-            cloud infrastructure. Turtl.Bio aims to unify the development
-            experience, giving scientists and bioinformaticians the power of a
-            professional engineering environment without the DevOps overhead.
-          </p>
+    <div>
+      {/* 01 — PITCH */}
+      <Section number="01" label="Mission" className="pt-20 md:pt-28 pb-20 md:pb-28">
+        <div className="grid md:grid-cols-12 gap-10 md:gap-16">
+          <div className="md:col-span-8">
+            <h1 className="text-[40px] md:text-[64px] leading-[1.03] tracking-[-0.02em] font-normal text-zinc-950">
+              We give pre-IND biotech teams the{" "}
+              <span className="font-serif italic text-[#0f8f77]">
+                regulatory reasoning layer
+              </span>{" "}
+              they can&rsquo;t afford to hire.
+            </h1>
+            <p className="mt-8 max-w-[620px] text-[17px] leading-relaxed text-zinc-600">
+              A 20-person team without a dedicated regulatory hire shouldn&rsquo;t
+              need a $400/hr phone call to get a usable, auditable answer.
+              Turtl.Bio is a structured interpretation workspace for FDA guidance
+              and precedent &mdash; anchored to a specific product profile, sourced
+              by construction.
+            </p>
+          </div>
+          <div className="md:col-span-4 md:pl-8 md:border-l border-zinc-200">
+            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400 mb-4">
+              At a glance
+            </div>
+            <dl className="space-y-4 text-[14px]">
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                  Customer
+                </dt>
+                <dd className="text-zinc-950 mt-1">
+                  Pre-IND US biotechs, &lt; 50 people
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                  Stage
+                </dt>
+                <dd className="text-zinc-950 mt-1">
+                  Working prototype, alpha access
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                  Sprint goal
+                </dt>
+                <dd className="text-zinc-950 mt-1">
+                  15 structured discovery conversations + one pilot team
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                  Based
+                </dt>
+                <dd className="text-zinc-950 mt-1">New York</dd>
+              </div>
+            </dl>
+          </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Team Grid */}
-      <section className="container py-8 px-4 mx-auto">
-        <div className="flex flex-col items-center mb-10">
-          <h2 className="text-2xl font-bold tracking-tight mb-2">
-            Meet the Team
-          </h2>
-          <div className="h-1 w-12 bg-blue-500 rounded-full" />
-        </div>
+      {/* 02 — PIVOT: BEFORE / AFTER */}
+      <Section
+        number="02"
+        label="Pivot"
+        className="py-20 md:py-28 border-t border-zinc-200"
+      >
+        <SectionHeader
+          eyebrow="How we got here"
+          title={
+            <>
+              We expected drafting to be the bottleneck.{" "}
+              <span className="font-serif italic">It wasn&rsquo;t.</span>
+            </>
+          }
+          description="Our first product framing was a broad Compliance & Regulatory Intelligence platform — pathway mapping, drafting, submissions, post-market surveillance. Discovery retired that framing."
+        />
 
-        {/* Compact Grid: up to 5 cols for the 5 members */}
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 max-w-7xl mx-auto justify-center">
-          {TEAM.map((member) => (
-            <Dialog key={member.name}>
-              <DialogTrigger asChild>
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-slate-200 dark:border-slate-800 flex flex-col pt-6 items-center cursor-pointer hover:-translate-y-1 group">
-                  <Avatar className="h-24 w-24 border-2 border-slate-100 dark:border-slate-700 shadow-sm transition-transform group-hover:scale-105">
-                    <AvatarImage
-                      src={member.image}
-                      alt={member.name}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-slate-200 dark:bg-slate-800 text-slate-500 text-2xl font-bold">
-                      {member.initials}
-                    </AvatarFallback>
-                  </Avatar>
+        <figure className="mt-12">
+          <blockquote className="font-serif text-[28px] md:text-[40px] leading-[1.12] tracking-[-0.01em] text-zinc-950 max-w-3xl">
+            &ldquo;We expected drafting to be the bottleneck. Interviews revealed teams
+            aren&rsquo;t stuck writing &mdash; they&rsquo;re stuck{" "}
+            <span className="italic">deciding what applies</span> before they write
+            anything.&rdquo;
+          </blockquote>
+          <Cite className="mt-6">Turtl.Bio Discovery Synthesis, 2026</Cite>
+        </figure>
 
-                  <CardHeader className="text-center p-4 pb-0 w-full">
-                    <CardTitle className="text-lg">{member.name}</CardTitle>
-                    <CardDescription className="text-blue-500 text-xs font-semibold uppercase tracking-wide">
-                      {member.role}
-                    </CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="p-4 pt-2 flex-grow text-center w-full">
-                    {member.pastExperience && (
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">
-                          Previously:
-                        </span>
-                        <div className="mt-1 flex flex-wrap gap-1 justify-center">
-                          {member.pastExperience.map((exp) => (
-                            <span
-                              key={exp}
-                              className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px]"
-                            >
-                              {exp}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-
-                  <CardFooter className="justify-center p-4 pt-0 w-full">
-                    <div className="text-xs text-muted-foreground group-hover:text-blue-500 transition-colors">
-                      Click to learn more
-                    </div>
-                  </CardFooter>
-                </Card>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader className="flex flex-col items-center sm:items-start gap-4">
-                  <div className="flex flex-col items-center sm:flex-row sm:gap-4 w-full">
-                    <Avatar className="h-24 w-24 border-2 border-slate-100 dark:border-slate-700 shadow-sm">
-                      <AvatarImage
-                        src={member.image}
-                        alt={member.name}
-                        className="object-cover"
-                      />
-                      <AvatarFallback>
-                        {member.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="text-center sm:text-left mt-4 sm:mt-0">
-                      <DialogTitle className="text-2xl font-bold">
-                        {member.name}
-                      </DialogTitle>
-                      <DialogDescription className="text-blue-500 font-semibold mt-1">
-                        {member.role}
-                      </DialogDescription>
-
-                      <div className="mt-2 flex justify-center sm:justify-start">
-                        <Link href={member.linkedin || "#"} target="_blank">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 gap-2"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                            LinkedIn
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="text-sm text-foreground/90 leading-relaxed">
-                    {member.bio}
-                  </div>
-
-                  {member.pastExperience && (
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium leading-none">Experience</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {member.pastExperience.map((exp) => (
-                          <span
-                            key={exp}
-                            className="px-2.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs font-medium"
-                          >
-                            {exp}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
+        <div className="mt-16 border border-zinc-200 overflow-hidden">
+          <div className="grid grid-cols-3 bg-zinc-950 text-white">
+            <div className="p-4 md:p-5 font-mono text-[10px] uppercase tracking-[0.14em]">
+              Dimension
+            </div>
+            <div className="p-4 md:p-5 font-mono text-[10px] uppercase tracking-[0.14em] border-l border-white/10 text-zinc-400">
+              Before discovery
+            </div>
+            <div className="p-4 md:p-5 font-mono text-[10px] uppercase tracking-[0.14em] border-l border-white/10 text-[#54dcbc]">
+              After discovery
+            </div>
+          </div>
+          {PIVOT_ROWS.map((row, i) => (
+            <div
+              key={row.dim}
+              className={`grid grid-cols-3 text-[14px] leading-relaxed ${
+                i % 2 === 0 ? "bg-white" : "bg-[#fafafa]"
+              }`}
+            >
+              <div className="p-4 md:p-5 font-medium text-zinc-950 border-t border-zinc-200">
+                {row.dim}
+              </div>
+              <div className="p-4 md:p-5 text-zinc-500 border-t border-l border-zinc-200 line-through decoration-zinc-300">
+                {row.before}
+              </div>
+              <div className="p-4 md:p-5 text-zinc-950 border-t border-l border-zinc-200">
+                {row.after}
+              </div>
+            </div>
           ))}
         </div>
-      </section>
+      </Section>
+
+      {/* 03 — OPERATING PRINCIPLES */}
+      <Section
+        number="03"
+        label="Principles"
+        className="py-20 md:py-28 border-t border-zinc-200"
+      >
+        <SectionHeader
+          eyebrow="How we work"
+          title={
+            <>
+              Intellectual honesty is a{" "}
+              <span className="font-serif italic">core operating principle.</span>
+            </>
+          }
+        />
+        <div className="mt-14 grid md:grid-cols-3 gap-px bg-zinc-200 border border-zinc-200">
+          {[
+            {
+              n: "01",
+              t: "Show evidence, not summaries",
+              b: "Every claim is tied to a specific interview, clause, or approval package. We don't say \"we validated\" — we show what we heard and from whom.",
+            },
+            {
+              n: "02",
+              t: "Name the scope, and the gap",
+              b: "We don't promise generalization to modalities we haven't tested. Today that means small molecules and radioligand therapies. Cell & gene comes next.",
+            },
+            {
+              n: "03",
+              t: "No replacing consultants",
+              b: "We sit between consultants and generic AI. Consultants own the high-stakes strategic work — and are a distribution channel, not a target.",
+            },
+          ].map((p) => (
+            <div key={p.n} className="bg-white p-8 md:p-10">
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                {p.n}
+              </span>
+              <h3 className="mt-5 text-[20px] md:text-[22px] tracking-tight text-zinc-950 font-medium">
+                {p.t}
+              </h3>
+              <p className="mt-3 text-[14px] leading-relaxed text-zinc-600">
+                {p.b}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* 04 — TEAM */}
+      <Section
+        number="04"
+        label="Team"
+        className="py-20 md:py-28 border-t border-zinc-200"
+      >
+        <SectionHeader
+          eyebrow="Team"
+          title={
+            <>
+              Built by a small team in{" "}
+              <span className="font-serif italic">New York.</span>
+            </>
+          }
+          description="Product, engineering, and outreach — working directly with regulatory leads, founder-scientists, and CMC consultants to shape what gets built next."
+        />
+
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-zinc-200 border border-zinc-200">
+          {TEAM.map((member) => (
+            <div
+              key={member.name}
+              className="bg-white p-6 flex flex-col gap-4"
+            >
+              <div className="aspect-square w-full overflow-hidden bg-zinc-100 relative">
+                {member.image && (
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    sizes="(max-width: 768px) 50vw, 20vw"
+                    className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+                  />
+                )}
+              </div>
+              <div>
+                <div className="text-[15px] font-medium text-zinc-950">
+                  {member.name}
+                </div>
+                <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+                  {member.role}
+                </div>
+                {member.pastExperience && member.pastExperience.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-zinc-100 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+                    Prev &middot; {member.pastExperience.join(" / ")}
+                  </div>
+                )}
+                {member.linkedin && (
+                  <Link
+                    href={member.linkedin}
+                    target="_blank"
+                    className="mt-4 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-500 hover:text-zinc-950 transition-colors"
+                  >
+                    <Linkedin className="h-3 w-3" />
+                    LinkedIn
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* 05 — CONTACT */}
+      <Section
+        number="05"
+        label="Contact"
+        className="py-24 md:py-32 border-t border-zinc-200"
+      >
+        <div className="grid md:grid-cols-12 gap-10 items-end">
+          <div className="md:col-span-8">
+            <h2 className="text-[36px] md:text-[56px] leading-[1.04] tracking-[-0.02em] font-normal text-zinc-950">
+              Working on your first IND, or consulting for a team that is?{" "}
+              <span className="font-serif italic text-[#0f8f77]">
+                Let&rsquo;s talk.
+              </span>
+            </h2>
+          </div>
+          <div className="md:col-span-4">
+            <p className="text-[15px] leading-relaxed text-zinc-600 mb-6">
+              We have a learning agenda, not a growth agenda. Honest signal is
+              more useful than a sales pitch.
+            </p>
+            <Link
+              href="mailto:hl4929@nyu.edu"
+              className="inline-flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
+            >
+              hl4929@nyu.edu
+              <span aria-hidden className="font-mono text-xs">&rarr;</span>
+            </Link>
+          </div>
+        </div>
+      </Section>
     </div>
   );
 }
