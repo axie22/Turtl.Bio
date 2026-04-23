@@ -10,7 +10,11 @@ export default function LandingPage() {
   return (
     <div>
       {/* 01 — HERO */}
-      <Section number="01" label="Index" className="pt-20 md:pt-28 pb-16 md:pb-24">
+      <Section
+        number="01"
+        label="Index"
+        className="pt-20 md:pt-28 pb-16 md:pb-24"
+      >
         <div className="max-w-[900px]">
           <h1 className="text-[44px] leading-[1.04] md:text-[72px] md:leading-[0.98] tracking-[-0.02em] font-normal">
             The reasoning layer{" "}
@@ -29,7 +33,9 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 bg-zinc-950 text-white px-5 py-3 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
             >
               See the workspace
-              <span aria-hidden className="font-mono text-xs">&rarr;</span>
+              <span aria-hidden className="font-mono text-xs">
+                &rarr;
+              </span>
             </Link>
             <Link
               href="mailto:hl4929@nyu.edu"
@@ -80,7 +86,8 @@ export default function LandingPage() {
                   D+0
                 </span>
                 <span>
-                  RA lead hits conditional FDA language in ICH S6(R1). No clear answer.
+                  RA lead hits conditional FDA language in ICH S6(R1). No clear
+                  answer.
                 </span>
               </li>
               <li className="flex gap-4">
@@ -97,8 +104,10 @@ export default function LandingPage() {
                   D+4
                 </span>
                 <span>
-                  Calls a consultant at <span className="text-zinc-950">$300&ndash;500/hr</span>.
-                  Gets &ldquo;here are the considerations,&rdquo; not a direct answer.
+                  Calls a consultant at{" "}
+                  <span className="text-zinc-950">$300&ndash;500/hr</span>. Gets
+                  &ldquo;here are the considerations,&rdquo; not a direct
+                  answer.
                 </span>
               </li>
               <li className="flex gap-4">
@@ -125,7 +134,8 @@ export default function LandingPage() {
                   00:01
                 </span>
                 <span>
-                  Enters product profile: small-molecule, prostate cancer, male-only, pre-IND.
+                  Enters product profile: small-molecule, prostate cancer,
+                  male-only, pre-IND.
                 </span>
               </li>
               <li className="flex gap-4">
@@ -134,9 +144,13 @@ export default function LandingPage() {
                 </span>
                 <span>
                   Workspace surfaces{" "}
-                  <span className="font-mono text-[13px] text-zinc-950">Pluvicto</span>{" "}
+                  <span className="font-mono text-[13px] text-zinc-950">
+                    Pluvicto
+                  </span>{" "}
                   and{" "}
-                  <span className="font-mono text-[13px] text-zinc-950">Xtandi</span>{" "}
+                  <span className="font-mono text-[13px] text-zinc-950">
+                    Xtandi
+                  </span>{" "}
                   as precedent with male-only tox packages.
                 </span>
               </li>
@@ -197,7 +211,8 @@ export default function LandingPage() {
               n: "01",
               title: "Structured intake",
               body: "Captures modality, indication, population, and stage before any model touches the question. Routes to the right conditional logic.",
-              example: "INPUT: prostate cancer · small molecule · male-only · pre-IND",
+              example:
+                "INPUT: prostate cancer · small molecule · male-only · pre-IND",
             },
             {
               n: "02",
@@ -252,7 +267,7 @@ export default function LandingPage() {
       >
         <SectionHeader
           eyebrow="Why generic AI doesn't solve this"
-          title="A locally-run model still doesn't know which ICH clauses are conditional."
+          title="A generic model still doesn't know which ICH clauses are conditional."
           description="Enterprise subscriptions and local models solve data privacy. They do not solve the knowledge problem."
         />
 
@@ -272,12 +287,14 @@ export default function LandingPage() {
             {
               dim: "Starting point",
               ai: "Free-text prompt from a user with no regulatory training",
-              turtl: "Structured intake: modality, indication, population, question type",
+              turtl:
+                "Structured intake: modality, indication, population, question type",
             },
             {
               dim: "Knowledge applied",
               ai: "Training data. Broad, unstructured, possibly stale.",
-              turtl: "Curated regulatory reasoning logic validated by domain experts",
+              turtl:
+                "Curated regulatory reasoning logic validated by domain experts",
             },
             {
               dim: "Precedent access",
@@ -425,7 +442,9 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
             >
               Request alpha access
-              <span aria-hidden className="font-mono text-xs">&rarr;</span>
+              <span aria-hidden className="font-mono text-xs">
+                &rarr;
+              </span>
             </Link>
           </div>
         </div>

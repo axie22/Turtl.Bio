@@ -56,22 +56,26 @@ const PIVOT_ROWS: { dim: string; before: string; after: string }[] = [
   {
     dim: "Core user pain",
     before: "Finding guidance & writing faster",
-    after: "Interpreting conditional requirements given limited internal regulatory depth",
+    after:
+      "Interpreting conditional requirements given limited internal regulatory depth",
   },
   {
     dim: "What the product does",
     before: "Automated drafting, streamlined submissions",
-    after: "Helps teams interpret what FDA guidance means for their specific product",
+    after:
+      "Helps teams interpret what FDA guidance means for their specific product",
   },
   {
     dim: "Role of precedent",
     before: "Reference material for drafting",
-    after: "Critical input for interpretation. Currently fragmented and manually managed.",
+    after:
+      "Critical input for interpretation. Currently fragmented and manually managed.",
   },
   {
     dim: "Competitor frame",
     before: "Veeva, Certara (submission tools)",
-    after: "Consultants, spreadsheets, and generic LLMs for day-to-day decisions",
+    after:
+      "Consultants, spreadsheets, and generic LLMs for day-to-day decisions",
   },
   {
     dim: "Value delivered",
@@ -84,7 +88,11 @@ export default function AboutPage() {
   return (
     <div>
       {/* 01 — PITCH */}
-      <Section number="01" label="Mission" className="pt-20 md:pt-28 pb-20 md:pb-28">
+      <Section
+        number="01"
+        label="Mission"
+        className="pt-20 md:pt-28 pb-20 md:pb-28"
+      >
         <div className="grid md:grid-cols-12 gap-10 md:gap-16">
           <div className="md:col-span-8">
             <h1 className="text-[40px] md:text-[64px] leading-[1.03] tracking-[-0.02em] font-normal text-zinc-950">
@@ -93,11 +101,11 @@ export default function AboutPage() {
               they can&rsquo;t afford to hire.
             </h1>
             <p className="mt-8 max-w-[620px] text-[17px] leading-relaxed text-zinc-600">
-              A 20-person team without a dedicated regulatory hire shouldn&rsquo;t
-              need a $400/hr phone call to get a usable, auditable answer.
-              Turtl.Bio is a structured interpretation workspace for FDA guidance
-              and precedent, anchored to a specific product profile and sourced
-              by construction.
+              A 20-person team without a dedicated regulatory hire
+              shouldn&rsquo;t need a $400/hr phone call to get a usable,
+              auditable answer. Turtl.Bio is a structured interpretation
+              workspace for FDA guidance and precedent, anchored to a specific
+              product profile and sourced by construction.
             </p>
           </div>
           <div className="md:col-span-4 md:pl-8 md:border-l border-zinc-200">
@@ -118,7 +126,7 @@ export default function AboutPage() {
                   Stage
                 </dt>
                 <dd className="text-zinc-950 mt-1">
-                  Working prototype, alpha access
+                  Customer Interviews, Product Direction
                 </dd>
               </div>
               <div>
@@ -154,9 +162,9 @@ export default function AboutPage() {
 
         <figure className="mt-12">
           <blockquote className="font-serif text-[28px] md:text-[40px] leading-[1.12] tracking-[-0.01em] text-zinc-950 max-w-3xl">
-            &ldquo;We expected drafting to be the bottleneck. Interviews revealed
-            teams aren&rsquo;t stuck writing. They&rsquo;re stuck deciding what
-            applies before they write anything.&rdquo;
+            &ldquo;We expected drafting to be the bottleneck. Interviews
+            revealed teams aren&rsquo;t stuck writing. They&rsquo;re stuck
+            deciding what applies before they write anything.&rdquo;
           </blockquote>
           <Cite className="mt-6">Turtl.Bio Discovery Synthesis, 2026</Cite>
         </figure>
@@ -251,10 +259,7 @@ export default function AboutPage() {
 
         <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-px bg-zinc-200 border border-zinc-200">
           {TEAM.map((member) => (
-            <div
-              key={member.name}
-              className="bg-white p-6 flex flex-col gap-4"
-            >
+            <div key={member.name} className="bg-white p-6 flex flex-col gap-4">
               <div className="aspect-square w-full overflow-hidden bg-zinc-100 relative">
                 {member.image && (
                   <Image
@@ -317,7 +322,9 @@ export default function AboutPage() {
               className="inline-flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
             >
               hl4929@nyu.edu
-              <span aria-hidden className="font-mono text-xs">&rarr;</span>
+              <span aria-hidden className="font-mono text-xs">
+                &rarr;
+              </span>
             </Link>
           </div>
         </div>
