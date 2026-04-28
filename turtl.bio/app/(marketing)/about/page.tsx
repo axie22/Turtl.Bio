@@ -318,10 +318,10 @@ export default function AboutPage() {
               more useful than a sales pitch.
             </p>
             <Link
-              href="mailto:hl4929@nyu.edu"
+              href="mailto:anthony@turtltechnologies.net"
               className="inline-flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
             >
-              hl4929@nyu.edu
+              anthony@turtltechnologies.net
               <span aria-hidden className="font-mono text-xs">
                 &rarr;
               </span>

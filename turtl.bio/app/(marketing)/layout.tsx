@@ -64,10 +64,10 @@ export default function MarketingLayout({
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
-                    href="mailto:hl4929@nyu.edu"
+                    href="mailto:anthony@turtltechnologies.net"
                     className="hover:text-zinc-950 text-zinc-600"
                   >
-                    hl4929@nyu.edu
+                    anthony@turtltechnologies.net
                   </Link>
                 </li>
               </ul>

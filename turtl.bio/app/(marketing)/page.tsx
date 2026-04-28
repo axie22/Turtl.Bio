@@ -38,7 +38,7 @@ export default function LandingPage() {
               </span>
             </Link>
             <Link
-              href="mailto:hl4929@nyu.edu"
+              href="mailto:anthony@turtltechnologies.net"
               className="inline-flex items-center gap-2 border border-zinc-300 text-zinc-950 px-5 py-3 text-sm font-medium hover:border-zinc-950 transition-colors"
             >
               Request alpha access
@@ -438,7 +438,7 @@ export default function LandingPage() {
               feedback is more useful than a sales pitch.
             </p>
             <Link
-              href="mailto:hl4929@nyu.edu"
+              href="mailto:anthony@turtltechnologies.net"
               className="inline-flex items-center gap-2 bg-zinc-950 text-white px-6 py-4 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
             >
               Request alpha access
