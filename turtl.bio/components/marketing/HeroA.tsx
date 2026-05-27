@@ -1,0 +1,111 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ReasoningChain } from "@/components/marketing/ReasoningChain";
+import { Section, MetaStrip } from "@/components/marketing/primitives";
+
+const RA_OPTIONS = [
+  { value: "no-ra", label: "No dedicated RA hire yet" },
+  { value: "building", label: "Building that function now" },
+  { value: "other", label: "Something else" },
+] as const;
+
+const MAILTO_BASE = "mailto:anthony@turtltechnologies.net";
+
+function buildMailto(selection: string) {
+  if (!selection) return MAILTO_BASE;
+  const label = RA_OPTIONS.find((o) => o.value === selection)?.label ?? selection;
+  return `${MAILTO_BASE}?subject=${encodeURIComponent(
+    `Alpha access request — ${label}`
+  )}`;
+}
+
+/** Variant A — Identity. Same headline as the main page; adds the qualifying dropdown. */
+export function HeroA() {
+  const [raSelection, setRaSelection] = useState("");
+
+  return (
+    <Section
+      number="01"
+      label="Index"
+      className="pt-20 md:pt-28 pb-16 md:pb-24"
+    >
+      <div className="max-w-[900px]">
+        <h1 className="text-[44px] leading-[1.04] md:text-[72px] md:leading-[0.98] tracking-[-0.02em] font-normal">
+          The reasoning layer{" "}
+          <span className="text-[#0f8f77]">pre-IND biotech teams</span>{" "}
+          can&rsquo;t afford to hire.
+        </h1>
+        <p className="mt-8 max-w-[620px] text-[17px] leading-relaxed text-zinc-600">
+          A structured workspace for interpreting FDA guidance and precedent
+          against a specific product profile. Sourced and auditable by
+          construction.
+        </p>
+
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          <Link
+            href="/workspace"
+            className="inline-flex items-center gap-2 bg-zinc-950 text-white px-5 py-3 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
+          >
+            See the workspace
+            <span aria-hidden className="font-mono text-xs">
+              &rarr;
+            </span>
+          </Link>
+          <a
+            href={buildMailto(raSelection)}
+            className="inline-flex items-center gap-2 border border-zinc-300 text-zinc-950 px-5 py-3 text-sm font-medium hover:border-zinc-950 transition-colors"
+          >
+            Request alpha access
+          </a>
+        </div>
+
+        {/* Qualifying question */}
+        <div className="mt-8 max-w-[480px]">
+          <label
+            htmlFor="ra-qualifier-a"
+            className="block font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400 mb-2"
+          >
+            Where is your team on regulatory?
+          </label>
+          <div className="relative">
+            <select
+              id="ra-qualifier-a"
+              value={raSelection}
+              onChange={(e) => setRaSelection(e.target.value)}
+              className="w-full appearance-none border border-zinc-300 bg-white text-zinc-950 px-4 py-3 pr-10 text-[14px] cursor-pointer hover:border-zinc-950 transition-colors focus:outline-none focus:border-zinc-950"
+            >
+              <option value="">—</option>
+              {RA_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            {/* Custom chevron */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[10px] text-zinc-400"
+            >
+              ▾
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Reasoning chain — the hero's anchor visual */}
+      <div className="mt-16 md:mt-20">
+        <MetaStrip
+          items={[
+            { label: "Modality", value: "small molecule" },
+            { label: "Indication", value: "prostate cancer" },
+            { label: "Population", value: "male only" },
+            { label: "Stage", value: "pre-IND" },
+          ]}
+        />
+        <ReasoningChain />
+      </div>
+    </Section>
+  );
+}
