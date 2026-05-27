@@ -21,6 +21,15 @@ function buildMailto(selection: string) {
   )}`;
 }
 
+function trackVote(variant: string, selection: string) {
+  if (!selection) return;
+  fetch("/api/track-vote", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ variant, selection }),
+  }).catch(() => {}); // fire-and-forget — never block the mailto
+}
+
 /** Variant A — Identity. Same headline as the main page; adds the qualifying dropdown. */
 export function HeroA() {
   const [raSelection, setRaSelection] = useState("");
@@ -55,6 +64,7 @@ export function HeroA() {
           </Link>
           <a
             href={buildMailto(raSelection)}
+            onClick={() => trackVote("a", raSelection)}
             className="inline-flex items-center gap-2 border border-zinc-300 text-zinc-950 px-5 py-3 text-sm font-medium hover:border-zinc-950 transition-colors"
           >
             Request alpha access
