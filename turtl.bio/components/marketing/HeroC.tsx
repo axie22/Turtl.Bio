@@ -19,6 +19,15 @@ function buildMailto(selection: string) {
   )}`;
 }
 
+function trackVote(variant: string, selection: string) {
+  if (!selection) return;
+  fetch("/api/track-vote", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ variant, selection }),
+  }).catch(() => {});
+}
+
 /** Variant C — Pre-IND Meeting. Single CTA, no secondary button. */
 export function HeroC() {
   const [raSelection, setRaSelection] = useState("");
@@ -43,6 +52,7 @@ export function HeroC() {
         <div className="mt-10">
           <a
             href={buildMailto(raSelection)}
+            onClick={() => trackVote("c", raSelection)}
             className="inline-flex items-center gap-2 bg-zinc-950 text-white px-5 py-3 text-sm font-medium hover:bg-[#0f8f77] transition-colors"
           >
             Request alpha access
