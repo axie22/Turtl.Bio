@@ -64,7 +64,6 @@ export function HeroA() {
           </Link>
           <a
             href={buildMailto(raSelection)}
-            onClick={() => trackVote("a", raSelection)}
             className="inline-flex items-center gap-2 border border-zinc-300 text-zinc-950 px-5 py-3 text-sm font-medium hover:border-zinc-950 transition-colors"
           >
             Request alpha access
@@ -83,7 +82,10 @@ export function HeroA() {
             <select
               id="ra-qualifier-a"
               value={raSelection}
-              onChange={(e) => setRaSelection(e.target.value)}
+              onChange={(e) => {
+                setRaSelection(e.target.value);
+                trackVote("a", e.target.value);
+              }}
               className="w-full appearance-none border border-zinc-300 bg-white text-zinc-950 px-4 py-3 pr-10 text-[14px] cursor-pointer hover:border-zinc-950 transition-colors focus:outline-none focus:border-zinc-950"
             >
               <option value="">—</option>
