@@ -7,182 +7,392 @@ import {
   AbsoluteFill,
 } from "remotion";
 import { FONT } from "./fonts";
+import { C } from "./colors";
+
+// Reasoning chain nodes — mirrors the landing page ReasoningChain component
+const NODES = [
+  { n: "01", label: "Question",  body: "Histopathology\nscope + rodent\nstudy required?", type: "free-text" },
+  { n: "02", label: "Intake",    body: "pathway: 505(b)(2)\nroute: rectal\nindication: novel", type: "structured" },
+  { n: "03", label: "Routing",   body: "ICH M3(R2) §4\n21 CFR 312.23\n505(b)(2) guidance", type: "conditional" },
+  { n: "04", label: "Precedent", body: "Qutenza NDA\n022395\nnovel route cases", type: "comparator" },
+  { n: "05", label: "Output",    body: "NO — full panel\nLIKELY YES — rodent\nWritten waiver needed", type: "auditable" },
+];
 
 export const LandingScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Fade in the whole page
-  const pageOpacity = interpolate(frame, [0, fps * 0.5], [0, 1], {
-    extrapolateRight: "clamp",
-  });
+  function fi(start: number, end: number) {
+    return interpolate(frame, [start, end], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+      easing: Easing.out(Easing.quad),
+    });
+  }
 
-  // Badge slides up
-  const badgeY = interpolate(frame, [fps * 0.2, fps * 0.8], [20, 0], {
-    extrapolateRight: "clamp",
+  const eyebrowOp = fi(fps * 0.1, fps * 0.5);
+  const headlineOp = fi(fps * 0.3, fps * 0.9);
+  const headlineY  = interpolate(frame, [fps * 0.3, fps * 0.9], [18, 0], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
     easing: Easing.out(Easing.quad),
   });
-  const badgeOpacity = interpolate(frame, [fps * 0.2, fps * 0.8], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  // Title slides up
-  const titleY = interpolate(frame, [fps * 0.4, fps * 1.2], [30, 0], {
-    extrapolateRight: "clamp",
+  const subOp   = fi(fps * 0.7, fps * 1.3);
+  const ctaOp   = fi(fps * 1.0, fps * 1.6);
+  const ctaY    = interpolate(frame, [fps * 1.0, fps * 1.6], [12, 0], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
     easing: Easing.out(Easing.quad),
   });
-  const titleOpacity = interpolate(frame, [fps * 0.4, fps * 1.0], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  // Subtitle
-  const subOpacity = interpolate(frame, [fps * 0.8, fps * 1.4], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-
-  // CTA button
-  const ctaOpacity = interpolate(frame, [fps * 1.2, fps * 1.8], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-  const ctaY = interpolate(frame, [fps * 1.2, fps * 1.8], [20, 0], {
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.quad),
-  });
+  const stripOp = fi(fps * 1.6, fps * 2.0);
+  const chainOp = fi(fps * 2.0, fps * 2.6);
 
   return (
-    <AbsoluteFill
-      style={{
-        background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
-        fontFamily: FONT.body,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: pageOpacity,
-      }}
-    >
+    <AbsoluteFill style={{ background: C.bg, fontFamily: FONT.body }}>
+      {/* Top nav bar — mirrors the Navbar */}
       <div
         style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 56,
+          background: C.bg,
+          borderBottom: `1px solid ${C.border}`,
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
-          textAlign: "center",
-          maxWidth: 1200,
-          padding: "0 60px",
+          padding: "0 80px",
+          justifyContent: "space-between",
+          opacity: eyebrowOp,
         }}
       >
-        {/* Alpha badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <span
+              style={{
+                fontFamily: FONT.headline,
+                fontSize: 15,
+                fontWeight: 600,
+                color: C.text,
+                letterSpacing: -0.3,
+              }}
+            >
+              Turtl.Bio
+            </span>
+            <span
+              style={{
+                fontFamily: FONT.label,
+                fontSize: 10,
+                textTransform: "uppercase",
+                letterSpacing: "0.14em",
+                color: C.textFaint,
+              }}
+            >
+              Alpha
+            </span>
+          </div>
+          {["Index", "About"].map((item, i) => (
+            <span
+              key={item}
+              style={{
+                fontFamily: FONT.label,
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.14em",
+                color: i === 0 ? C.text : C.textDim,
+              }}
+            >
+              {item}
+            </span>
+          ))}
+        </div>
         <div
           style={{
-            opacity: badgeOpacity,
-            transform: `translateY(${badgeY}px)`,
-            background: "rgba(59, 130, 246, 0.15)",
-            color: "#93c5fd",
-            fontSize: 14,
-            fontWeight: 600,
-            padding: "6px 16px",
-            borderRadius: 20,
-            marginBottom: 32,
-            letterSpacing: 0.5,
+            background: C.text,
+            color: C.bg,
+            padding: "8px 18px",
+            fontFamily: FONT.label,
+            fontSize: 12,
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
           }}
         >
-          In Alpha Stage
+          Workspace <span style={{ fontFamily: FONT.label, fontSize: 10 }}>→</span>
+        </div>
+      </div>
+
+      {/* Main hero content */}
+      <div
+        style={{
+          position: "absolute",
+          top: 56,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          padding: "0 80px",
+          maxWidth: 1920,
+        }}
+      >
+        {/* Eyebrow */}
+        <div
+          style={{
+            opacity: eyebrowOp,
+            fontFamily: FONT.label,
+            fontSize: 11,
+            textTransform: "uppercase",
+            letterSpacing: "0.14em",
+            color: C.textFaint,
+            marginBottom: 28,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span style={{ color: C.textFaint }}>01</span>
+          <span
+            style={{
+              display: "inline-block",
+              width: 24,
+              height: 1,
+              background: C.borderMid,
+            }}
+          />
+          <span>Index</span>
         </div>
 
         {/* Headline */}
-        <h1
+        <div
           style={{
-            opacity: titleOpacity,
-            transform: `translateY(${titleY}px)`,
-            fontFamily: FONT.body,
-            fontSize: 82,
-            fontWeight: 800,
-            lineHeight: 1.1,
-            color: "white",
-            margin: 0,
+            opacity: headlineOp,
+            transform: `translateY(${headlineY}px)`,
+            maxWidth: 900,
+            marginBottom: 28,
           }}
         >
-          Pre-IND Interpretation,
-          <br />
-          <span
+          <h1
             style={{
-              background: "linear-gradient(90deg, #3b82f6, #14b8a6)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              fontFamily: FONT.headline,
+              fontSize: 68,
+              fontWeight: 400,
+              lineHeight: 1.03,
+              letterSpacing: "-0.02em",
+              color: C.text,
+              margin: 0,
             }}
           >
-            Without the Ambiguity
-          </span>
-        </h1>
+            The reasoning layer{" "}
+            <span style={{ color: C.accent }}>pre-IND biotech teams</span>{" "}
+            can&rsquo;t afford to hire.
+          </h1>
+        </div>
 
         {/* Subtitle */}
         <p
           style={{
-            opacity: subOpacity,
-            fontSize: 22,
-            color: "#94a3b8",
-            maxWidth: 800,
-            lineHeight: 1.6,
-            marginTop: 28,
+            opacity: subOp,
+            fontFamily: FONT.body,
+            fontSize: 17,
+            lineHeight: 1.65,
+            color: C.textDim,
+            maxWidth: 600,
+            margin: "0 0 36px 0",
           }}
         >
-          The structured workspace for preclinical biotech teams to understand
-          what FDA guidance and precedent{" "}
-          <em style={{ color: "#cbd5e1" }}>actually</em> mean for your specific
-          product.
+          A structured workspace for interpreting FDA guidance and precedent
+          against a specific product profile. Sourced and auditable by
+          construction.
         </p>
 
-        {/* CTA Buttons */}
+        {/* CTA buttons */}
         <div
           style={{
-            opacity: ctaOpacity,
+            opacity: ctaOp,
             transform: `translateY(${ctaY}px)`,
             display: "flex",
-            gap: 16,
-            marginTop: 48,
+            gap: 12,
+            marginBottom: 56,
           }}
         >
           <div
             style={{
-              background: "#3b82f6",
-              color: "white",
-              fontSize: 18,
-              fontWeight: 600,
-              padding: "14px 36px",
-              borderRadius: 8,
+              background: C.text,
+              color: C.bg,
+              padding: "12px 22px",
+              fontFamily: FONT.body,
+              fontSize: 14,
+              fontWeight: 500,
               display: "flex",
               alignItems: "center",
               gap: 8,
             }}
           >
-            Try Workspace →
+            See the workspace{" "}
+            <span style={{ fontFamily: FONT.label, fontSize: 12 }}>→</span>
           </div>
           <div
             style={{
               background: "transparent",
-              color: "#94a3b8",
-              fontSize: 18,
+              color: C.text,
+              padding: "12px 22px",
+              fontFamily: FONT.body,
+              fontSize: 14,
               fontWeight: 500,
-              padding: "14px 36px",
-              borderRadius: 8,
-              border: "1px solid #334155",
+              border: `1px solid ${C.borderMid}`,
             }}
           >
-            Learn More
+            Request alpha access
           </div>
         </div>
-      </div>
 
-      {/* Subtle grid background */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)",
-          backgroundSize: "40px 40px",
-          pointerEvents: "none",
-        }}
-      />
+        {/* Meta strip — mirrors MetaStrip component */}
+        <div
+          style={{
+            opacity: stripOp,
+            display: "flex",
+            alignItems: "center",
+            gap: 24,
+            paddingTop: 16,
+            paddingBottom: 16,
+            borderTop: `1px solid ${C.border}`,
+            borderBottom: `1px solid ${C.border}`,
+            marginBottom: 36,
+          }}
+        >
+          {[
+            { label: "Modality", value: "capsaicin suppository" },
+            { label: "Pathway",  value: "505(b)(2) NDA" },
+            { label: "Stage",    value: "pre-IND" },
+            { label: "Question", value: "nonclinical package scope" },
+          ].map((item, i) => (
+            <span
+              key={item.label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                fontFamily: FONT.label,
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.14em",
+              }}
+            >
+              <span style={{ color: C.textFaint }}>{item.label}</span>
+              <span style={{ color: C.text }}>{item.value}</span>
+              {i < 3 && (
+                <span style={{ color: C.borderMid, marginLeft: 2 }}>·</span>
+              )}
+            </span>
+          ))}
+        </div>
+
+        {/* Reasoning chain nodes — mirrors ReasoningChain component */}
+        <div
+          style={{
+            opacity: chainOp,
+            display: "flex",
+            gap: 0,
+          }}
+        >
+          {NODES.map((node, i) => (
+            <div key={node.n} style={{ display: "flex", alignItems: "stretch", flex: 1 }}>
+              <div
+                style={{
+                  flex: 1,
+                  border: `1px solid ${C.border}`,
+                  borderRight: i < NODES.length - 1 ? "none" : `1px solid ${C.border}`,
+                  background: C.bg,
+                  padding: "16px 18px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  minHeight: 130,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: FONT.label,
+                        fontSize: 10,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.14em",
+                        color: C.textFaint,
+                      }}
+                    >
+                      {node.n} · {node.label}
+                    </span>
+                    <div
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background:
+                          i === NODES.length - 1 ? C.accent : C.borderMid,
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: FONT.body,
+                      fontSize: 12,
+                      lineHeight: 1.45,
+                      color: i === NODES.length - 1 ? C.text : C.textSub,
+                      fontWeight: i === NODES.length - 1 ? 500 : 400,
+                      whiteSpace: "pre-line",
+                    }}
+                  >
+                    {node.body}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    marginTop: 10,
+                    paddingTop: 10,
+                    borderTop: `1px solid ${C.border}`,
+                    fontFamily: FONT.label,
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.14em",
+                    color: C.textFaint,
+                  }}
+                >
+                  {node.type}
+                </div>
+              </div>
+              {/* Arrow connector between cards */}
+              {i < NODES.length - 1 && (
+                <div
+                  style={{
+                    width: 20,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    color: C.textFaint,
+                    fontFamily: FONT.label,
+                    fontSize: 12,
+                    background: C.bg,
+                    borderTop: `1px solid ${C.border}`,
+                    borderBottom: `1px solid ${C.border}`,
+                  }}
+                >
+                  →
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </AbsoluteFill>
   );
 };
