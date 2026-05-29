@@ -155,13 +155,13 @@ const FILE_TREE: TreeItem[] = [
 type Phase = "idle" | "analyzing" | "complete";
 
 function getPhase(frame: number, fps: number): Phase {
-  if (frame < 11 * fps) return "idle";
-  if (frame < 21 * fps) return "analyzing";
+  if (frame < 9 * fps) return "idle";
+  if (frame < 18 * fps) return "analyzing";
   return "complete";
 }
 
 function getVisibleCards(frame: number, fps: number): number {
-  const submitFrame = 11 * fps;
+  const submitFrame = 9 * fps;
   if (frame < submitFrame) return 0;
   return Math.min(Math.floor((frame - submitFrame) / (1.5 * fps)) + 1, EVIDENCE_CARDS.length);
 }
@@ -837,15 +837,16 @@ const InterpretationZone: React.FC<{
   fps: number;
 }> = ({ phase, visibleCards, frame, fps }) => {
   const isComplete = phase === "complete";
-  const submitFrame = 11 * fps;
-  const completeFrame = 21 * fps;
+  const submitFrame = 9 * fps;
+  const completeFrame = 18 * fps;
 
   const fi = (start: number, end: number) =>
     interpolate(frame, [start, end], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  const rulingAOp = fi(completeFrame, completeFrame + fps * 0.6);
-  const rulingBOp = fi(completeFrame + fps * 4, completeFrame + fps * 4.6);
-  const preIndOp  = fi(completeFrame + fps * 8, completeFrame + fps * 8.6);
+  const rulingAOp = fi(completeFrame, completeFrame + fps * 0.5);
+  const rulingBOp = fi(completeFrame + fps * 3, completeFrame + fps * 3.5);
+  const confirmOp = fi(completeFrame + fps * 5, completeFrame + fps * 5.5);
+  const preIndOp  = fi(completeFrame + fps * 7, completeFrame + fps * 7.5);
 
   return (
     <div style={{ flex: 1, overflow: "hidden", background: C.bg, padding: "18px 22px" }}>
@@ -941,13 +942,41 @@ const InterpretationZone: React.FC<{
         </div>
       )}
 
-      {/* Complete: rulings + pre-IND */}
+      {/* Complete: rulings + what to confirm + pre-IND */}
       {isComplete && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "flex", gap: 12 }}>
             <RulingCard ruling={RULING_A} opacity={rulingAOp} />
             <RulingCard ruling={RULING_B} opacity={rulingBOp} />
           </div>
+
+          {/* WHAT TO CONFIRM — third guidance note */}
+          <div style={{
+            opacity: confirmOp,
+            background: C.bg,
+            border: `1px solid ${C.amberBorder}`,
+            borderLeft: `3px solid ${C.amber}`,
+            padding: "14px 18px",
+          }}>
+            <span style={{ ...monoLabel(9, C.amber), display: "block", marginBottom: 10 }}>
+              What to confirm:
+            </span>
+            {[
+              "FDA written concurrence that histopathology limited to rectum and colon is acceptable for this study design, or confirmation that a full organ panel per ICH M3(R2) Table 1 is required.",
+              "FDA written statement that the completed 4-week GLP dog study satisfies the non-rodent requirement and whether a rodent GLP study is required per 21 CFR 312.23(a)(8) for this indication and route.",
+              "If rodent study is required: acceptable study duration (14-day vs. 28-day) and whether existing published capsaicin rodent toxicology data is sufficient to support a reduced study design.",
+            ].map((item, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, marginBottom: i < 2 ? 8 : 0 }}>
+                <span style={{ fontFamily: FONT.label, fontSize: 11, color: C.amber, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>
+                  {i + 1}.
+                </span>
+                <span style={{ fontFamily: FONT.body, fontSize: 11.5, color: C.textSub, lineHeight: 1.6 }}>
+                  {item}
+                </span>
+              </div>
+            ))}
+          </div>
+
           <div style={{ opacity: preIndOp }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <span style={monoLabel(9, C.accent)}>Pre-IND Meeting Prep</span>
@@ -1208,7 +1237,7 @@ export const WorkspaceScene: React.FC = () => {
   const visibleCards = getVisibleCards(frame, fps);
 
   // Tab appears at submit with a quick fade-in
-  const tabOpacity = interpolate(frame, [11 * fps, 11 * fps + 18], [0, 1], {
+  const tabOpacity = interpolate(frame, [9 * fps, 9 * fps + 18], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -1247,76 +1276,62 @@ export const WorkspaceScene: React.FC = () => {
       scale: lerp(frame, 2*fps, 3.5*fps, FILETREE_SCALE, 1),
       focus: lerpPt(frame, 2*fps, 3.5*fps, FILETREE_FOCUS, DEFAULT_FOCUS),
     };
-    // 3.5–5.5s: hold full view — TPP visible
-    if (frame < 5.5 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
-    // 5.5–7.5s: zoom to AI copilot
-    if (frame < 7.5 * fps) return {
-      scale: lerp(frame, 5.5*fps, 7.5*fps, 1, 2.2),
-      focus: lerpPt(frame, 5.5*fps, 7.5*fps, DEFAULT_FOCUS, COPILOT_FOCUS),
+    // 3.5–5s: hold full view — TPP visible
+    if (frame < 5 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
+    // 5–7s: zoom to AI copilot
+    if (frame < 7 * fps) return {
+      scale: lerp(frame, 5*fps, 7*fps, 1, 2.2),
+      focus: lerpPt(frame, 5*fps, 7*fps, DEFAULT_FOCUS, COPILOT_FOCUS),
     };
-    // 7.5–11s: hold on copilot (typing)
-    if (frame < 11 * fps) return { scale: 2.2, focus: COPILOT_FOCUS };
-    // 11–13s: pull back to reveal new tab opening
-    if (frame < 13 * fps) return {
-      scale: lerp(frame, 11*fps, 13*fps, 2.2, 1),
-      focus: lerpPt(frame, 11*fps, 13*fps, COPILOT_FOCUS, DEFAULT_FOCUS),
+    // 7–9s: hold on copilot (typing, submit at 9s)
+    if (frame < 9 * fps) return { scale: 2.2, focus: COPILOT_FOCUS };
+    // 9–11s: pull back to reveal new tab opening
+    if (frame < 11 * fps) return {
+      scale: lerp(frame, 9*fps, 11*fps, 2.2, 1),
+      focus: lerpPt(frame, 9*fps, 11*fps, COPILOT_FOCUS, DEFAULT_FOCUS),
     };
-    // 13–25s: full view — analysis appears in new tab
-    if (frame < 25 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
-    // 25–27s: zoom onto Ruling A
-    if (frame < 27 * fps) return {
-      scale: lerp(frame, 25*fps, 26*fps, 1, RULING_SCALE),
-      focus: lerpPt(frame, 25*fps, 26*fps, DEFAULT_FOCUS, RULING_A_FOCUS),
+    // 11–22s: full view — analysis appears (complete at 18s, both rulings visible by 21s)
+    if (frame < 22 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
+    // 22–23.5s: zoom onto Ruling A
+    if (frame < 23.5 * fps) return {
+      scale: lerp(frame, 22*fps, 23*fps, 1, RULING_SCALE),
+      focus: lerpPt(frame, 22*fps, 23*fps, DEFAULT_FOCUS, RULING_A_FOCUS),
     };
-    // 27–29s: hold Ruling A
-    if (frame < 29 * fps) return { scale: RULING_SCALE, focus: RULING_A_FOCUS };
-    // 29–31s: pull back
+    // 23.5–25s: hold Ruling A
+    if (frame < 25 * fps) return { scale: RULING_SCALE, focus: RULING_A_FOCUS };
+    // 25–26.5s: pull back
+    if (frame < 26.5 * fps) return {
+      scale: lerp(frame, 25*fps, 26.5*fps, RULING_SCALE, 1),
+      focus: lerpPt(frame, 25*fps, 26.5*fps, RULING_A_FOCUS, DEFAULT_FOCUS),
+    };
+    // 26.5–28s: zoom onto Ruling B
+    if (frame < 28 * fps) return {
+      scale: lerp(frame, 26.5*fps, 27.5*fps, 1, RULING_SCALE),
+      focus: lerpPt(frame, 26.5*fps, 27.5*fps, DEFAULT_FOCUS, RULING_B_FOCUS),
+    };
+    // 28–29.5s: hold Ruling B
+    if (frame < 29.5 * fps) return { scale: RULING_SCALE, focus: RULING_B_FOCUS };
+    // 29.5–31s: pull back
     if (frame < 31 * fps) return {
-      scale: lerp(frame, 29*fps, 30.5*fps, RULING_SCALE, 1),
-      focus: lerpPt(frame, 29*fps, 30.5*fps, RULING_A_FOCUS, DEFAULT_FOCUS),
+      scale: lerp(frame, 29.5*fps, 31*fps, RULING_SCALE, 1),
+      focus: lerpPt(frame, 29.5*fps, 31*fps, RULING_B_FOCUS, DEFAULT_FOCUS),
     };
-    // 31–33s: zoom onto Ruling B
-    if (frame < 33 * fps) return {
-      scale: lerp(frame, 31*fps, 32*fps, 1, RULING_SCALE),
-      focus: lerpPt(frame, 31*fps, 32*fps, DEFAULT_FOCUS, RULING_B_FOCUS),
-    };
-    // 33–35s: hold Ruling B
-    if (frame < 35 * fps) return { scale: RULING_SCALE, focus: RULING_B_FOCUS };
-    // 35–37s: pull back
-    if (frame < 37 * fps) return {
-      scale: lerp(frame, 35*fps, 36.5*fps, RULING_SCALE, 1),
-      focus: lerpPt(frame, 35*fps, 36.5*fps, RULING_B_FOCUS, DEFAULT_FOCUS),
-    };
-    // 37–43s: full view with pre-IND questions
-    if (frame < 43 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
-    // 43–45s: zoom into file tree — v1/v2/v3 versions
-    if (frame < 45 * fps) return {
-      scale: lerp(frame, 43*fps, 44.5*fps, 1, FILETREE_SCALE),
-      focus: lerpPt(frame, 43*fps, 44.5*fps, DEFAULT_FOCUS, FILETREE_FOCUS),
-    };
-    // 45–48.5s: hold on file tree
-    if (frame < 48.5 * fps) return { scale: FILETREE_SCALE, focus: FILETREE_FOCUS };
-    // 48.5–50s: pull back
-    if (frame < 50 * fps) return {
-      scale: lerp(frame, 48.5*fps, 50*fps, FILETREE_SCALE, 1),
-      focus: lerpPt(frame, 48.5*fps, 50*fps, FILETREE_FOCUS, DEFAULT_FOCUS),
-    };
-    // 50s+: final full view
+    // 31s+: full view — all outputs visible, scroll reveals pre-IND questions
     return { scale: 1, focus: DEFAULT_FOCUS };
   })();
 
   const tx = 960 - focus.x * scale;
   const ty = 540 - focus.y * scale;
 
-  // Typing starts once we're zoomed into copilot (7.5s), finishes before submit (11s)
-  const typingProgress = interpolate(frame, [7.5 * fps, 10.5 * fps], [0, 1], {
+  // Typing runs while zoomed into copilot (7s), finishes just before submit (9s)
+  const typingProgress = interpolate(frame, [7 * fps, 8.7 * fps], [0, 1], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-  const fadeToBlack = interpolate(frame, [49.5 * fps, 51 * fps], [0, 1], {
+  const fadeToBlack = interpolate(frame, [39 * fps, 41 * fps], [0, 1], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-  // Scroll to reveal pre-IND questions during the 37–43s full-view window
-  const scrollY = interpolate(frame, [38 * fps, 43 * fps], [0, -320], {
+  // Scroll reveals WHAT TO CONFIRM + pre-IND questions after rulings zooms finish
+  const scrollY = interpolate(frame, [32 * fps, 37 * fps], [0, -320], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.quad),
   });
