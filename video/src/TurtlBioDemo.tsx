@@ -8,8 +8,8 @@ import { WorkspaceScene } from "./WorkspaceScene";
 const LANDING_DURATION = 120;
 // Fade transition: 0.5s (15 frames overlap)
 const FADE_DURATION = 15;
-// Workspace: 41s (1230 frames at 30fps)
-const WORKSPACE_DURATION = 1230;
+// Workspace: 46.5s (1395 frames at 30fps)
+const WORKSPACE_DURATION = 1395;
 
 export const TurtlBioDemo: React.FC = () => {
   return (

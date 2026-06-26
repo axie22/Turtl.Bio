@@ -91,16 +91,19 @@ interface TreeItem {
 }
 
 const FILE_TREE: TreeItem[] = [
-  { name: "TPP_CAPS-001_v2.xlsx",       type: "file", active: true },
+  { name: "TPP_CAPS-001_v2.xlsx",          type: "file", active: true },
+  { name: "formulation-CMC-summary.xlsx",   type: "file" },
   {
     name: "regulatory-refs",
     type: "folder",
     open: true,
     children: [
-      { name: "ICH-M3R2_Source1.pdf",      type: "file"  },
-      { name: "21CFR-312.23_Source2.pdf",   type: "file" },
-      { name: "505b2-guidance_Source5.pdf", type: "file" },
-      { name: "fda-excipient-guidance.pdf", type: "file" },
+      { name: "ICH-M3R2_Source1.pdf",            type: "file" },
+      { name: "21CFR-312.23_Source2.pdf",         type: "file" },
+      { name: "505b2-guidance_Source5.pdf",       type: "file" },
+      { name: "fda-excipient-guidance.pdf",       type: "file" },
+      { name: "fda-rectal-route-precedent.pdf",   type: "file" },
+      { name: "sba-NDA022395-review.pdf",         type: "file" },
     ],
   },
   {
@@ -113,9 +116,11 @@ const FILE_TREE: TreeItem[] = [
         type: "folder",
         open: true,
         children: [
-          { name: "protocol_v1.pdf",         type: "file", dim: true  },
-          { name: "protocol_v2.pdf",         type: "file", dim: true  },
-          { name: "protocol_v3.pdf",         type: "file"              },
+          { name: "protocol_v1.pdf",                type: "file", dim: true },
+          { name: "protocol_v2.pdf",                type: "file", dim: true },
+          { name: "protocol_v3.pdf",                type: "file"            },
+          { name: "toxicokinetics-report.pdf",      type: "file"            },
+          { name: "dose-formulation-stability.pdf", type: "file"            },
         ],
       },
       {
@@ -123,11 +128,23 @@ const FILE_TREE: TreeItem[] = [
         type: "folder",
         open: true,
         children: [
-          { name: "scope-assessment_v1.pdf", type: "file", dim: true  },
-          { name: "scope-assessment_v2.pdf", type: "file"             },
+          { name: "scope-assessment_v1.pdf",   type: "file", dim: true },
+          { name: "scope-assessment_v2.pdf",   type: "file"            },
+          { name: "organ-weight-data.xlsx",    type: "file"            },
+          { name: "full-organ-checklist.xlsx", type: "file"            },
         ],
       },
-      { name: "pk-absorption-profile.pdf",  type: "file" },
+      {
+        name: "rodent-study-design",
+        type: "folder",
+        open: true,
+        children: [
+          { name: "feasibility-assessment.md", type: "file" },
+          { name: "cro-comparison.md",         type: "file" },
+        ],
+      },
+      { name: "pk-absorption-profile.pdf",      type: "file" },
+      { name: "systemic-exposure-analysis.pdf", type: "file" },
     ],
   },
   {
@@ -135,17 +152,31 @@ const FILE_TREE: TreeItem[] = [
     type: "folder",
     open: true,
     children: [
+      { name: "introduction.md",               type: "file" },
       { name: "nonclinical-overview_draft.md", type: "file" },
       { name: "pharmacology-summary.md",       type: "file" },
+      { name: "cmc-overview_draft.md",         type: "file" },
+      { name: "clinical-protocol-outline.md",  type: "file" },
     ],
   },
   {
     name: "pre-ind-prep",
     type: "folder",
+    open: true,
+    children: [
+      { name: "meeting-request-draft.md",  type: "file"            },
+      { name: "fda-questions_v1.md",       type: "file", dim: true },
+      { name: "fda-questions_v2.md",       type: "file"            },
+      { name: "briefing-doc-outline.md",   type: "file"            },
+    ],
+  },
+  {
+    name: "cmc",
+    type: "folder",
     open: false,
     children: [
-      { name: "meeting-agenda.md",     type: "file" },
-      { name: "questions-draft.md",    type: "file" },
+      { name: "drug-substance-spec.xlsx", type: "file" },
+      { name: "stability-protocol.md",    type: "file" },
     ],
   },
 ];
@@ -155,13 +186,13 @@ const FILE_TREE: TreeItem[] = [
 type Phase = "idle" | "analyzing" | "complete";
 
 function getPhase(frame: number, fps: number): Phase {
-  if (frame < 9 * fps) return "idle";
-  if (frame < 18 * fps) return "analyzing";
+  if (frame < 12 * fps) return "idle";
+  if (frame < 22 * fps) return "analyzing";
   return "complete";
 }
 
 function getVisibleCards(frame: number, fps: number): number {
-  const submitFrame = 9 * fps;
+  const submitFrame = 12 * fps;
   if (frame < submitFrame) return 0;
   return Math.min(Math.floor((frame - submitFrame) / (1.5 * fps)) + 1, EVIDENCE_CARDS.length);
 }
@@ -578,6 +609,33 @@ const TPP_SECTIONS = [
       { attr: "Key nonclinical gap",   value: "Full histopathology organ scope + rodent GLP study requirement — pending FDA pre-IND concurrence",          ideal: "",                                                            min: "",                                                           highlight: true  },
     ],
   },
+  {
+    n: "05", title: "Clinical Pharmacology & PK", hasTargets: false,
+    rows: [
+      { attr: "Systemic exposure",     value: "Cₘₐₓ < 0.5 ng/mL at 5% w/w dose · rectal bioavailability < 5% of equivalent IV · target: Cₘₐₓ ≤ 0.2 ng/mL, AUC < LOQ" },
+      { attr: "Metabolic pathway",     value: "FAAH-mediated hydrolysis in gut epithelium (primary) · minor CYP3A4/CYP1A2 (< 15%) · no clinically relevant DDIs predicted" },
+      { attr: "PD target engagement",  value: "TRPV1 receptor density by colonoscopy biopsy · onset 2–4 wk confirms local desensitization · no systemic TRPV1 effects at therapeutic dose" },
+      { attr: "Dose selection",        value: "5% w/w modeled from Qutenza 8% patch PK · dose-response confirmed in ex vivo rectal motility assay · 2 g suppository unit weight" },
+    ],
+  },
+  {
+    n: "06", title: "Formulation & CMC", hasTargets: false,
+    rows: [
+      { attr: "Dosage form",           value: "2 g rectal suppository · cocoa butter / hydrogenated vegetable oil base · capsaicin 5% w/w (micronized, D90 < 20 µm)" },
+      { attr: "Manufacturing",         value: "Melt-pour under N₂ blanket · validated at 10 kg scale · GMP-certified CMO identified · Phase 1 clinical supply lot (50,000 units) planned Q3 2025" },
+      { attr: "Stability (ICH Q1A)",   value: "24-month real-time (25°C/60%RH) + 6-month accelerated (40°C/75%RH) · 3-month interim confirms potency and physical stability" },
+      { attr: "CMC IND readiness",     value: "Drug substance characterization complete · drug product batch records drafted · analytical method validation (HPLC-UV) in progress" },
+    ],
+  },
+  {
+    n: "07", title: "Regulatory Milestone Plan", hasTargets: false,
+    rows: [
+      { attr: "Pre-IND meeting (Type B)", value: "Target Q2 2025 — confirm nonclinical package scope, histopathology waiver, rodent GLP waiver / requirements; written meeting minutes required" },
+      { attr: "IND submission",           value: "Target Q4 2025 contingent on pre-IND concurrence and rodent GLP completion if required (6–9 month critical-path timeline)" },
+      { attr: "Phase 1/2a FIH",           value: "Open-label dose-escalation (3+3) · SCI patients with NBD (NBDS ≥ 14) · 3 sites · primary endpoint: NBDS change from baseline at Week 12" },
+      { attr: "Critical dependency",      value: "Rodent GLP study is sole critical-path item; CMC, clinical protocol, and CTA preparation can proceed in parallel pending pre-IND guidance" },
+    ],
+  },
 ];
 
 const TPPDocument: React.FC = () => {
@@ -837,8 +895,8 @@ const InterpretationZone: React.FC<{
   fps: number;
 }> = ({ phase, visibleCards, frame, fps }) => {
   const isComplete = phase === "complete";
-  const submitFrame = 9 * fps;
-  const completeFrame = 18 * fps;
+  const submitFrame = 12 * fps;
+  const completeFrame = 22 * fps;
 
   const fi = (start: number, end: number) =>
     interpolate(frame, [start, end], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
@@ -1237,7 +1295,7 @@ export const WorkspaceScene: React.FC = () => {
   const visibleCards = getVisibleCards(frame, fps);
 
   // Tab appears at submit with a quick fade-in
-  const tabOpacity = interpolate(frame, [9 * fps, 9 * fps + 18], [0, 1], {
+  const tabOpacity = interpolate(frame, [12 * fps, 12 * fps + 18], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -1276,47 +1334,47 @@ export const WorkspaceScene: React.FC = () => {
       scale: lerp(frame, 2*fps, 3.5*fps, FILETREE_SCALE, 1),
       focus: lerpPt(frame, 2*fps, 3.5*fps, FILETREE_FOCUS, DEFAULT_FOCUS),
     };
-    // 3.5–5s: hold full view — TPP visible
-    if (frame < 5 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
-    // 5–7s: zoom to AI copilot
-    if (frame < 7 * fps) return {
-      scale: lerp(frame, 5*fps, 7*fps, 1, 2.2),
-      focus: lerpPt(frame, 5*fps, 7*fps, DEFAULT_FOCUS, COPILOT_FOCUS),
+    // 3.5–7s: hold full view — TPP readable (3.5s dwell)
+    if (frame < 7 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
+    // 7–9s: zoom to AI copilot
+    if (frame < 9 * fps) return {
+      scale: lerp(frame, 7*fps, 9*fps, 1, 2.2),
+      focus: lerpPt(frame, 7*fps, 9*fps, DEFAULT_FOCUS, COPILOT_FOCUS),
     };
-    // 7–9s: hold on copilot (typing, submit at 9s)
-    if (frame < 9 * fps) return { scale: 2.2, focus: COPILOT_FOCUS };
-    // 9–11s: pull back to reveal new tab opening
-    if (frame < 11 * fps) return {
-      scale: lerp(frame, 9*fps, 11*fps, 2.2, 1),
-      focus: lerpPt(frame, 9*fps, 11*fps, COPILOT_FOCUS, DEFAULT_FOCUS),
+    // 9–12s: hold on copilot (typing 9–11.7s, submit at 12s)
+    if (frame < 12 * fps) return { scale: 2.2, focus: COPILOT_FOCUS };
+    // 12–14s: pull back to reveal new tab opening
+    if (frame < 14 * fps) return {
+      scale: lerp(frame, 12*fps, 14*fps, 2.2, 1),
+      focus: lerpPt(frame, 12*fps, 14*fps, COPILOT_FOCUS, DEFAULT_FOCUS),
     };
-    // 11–22s: full view — analysis appears (complete at 18s, both rulings visible by 21s)
-    if (frame < 22 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
-    // 22–23.5s: zoom onto Ruling A
-    if (frame < 23.5 * fps) return {
-      scale: lerp(frame, 22*fps, 23*fps, 1, RULING_SCALE),
-      focus: lerpPt(frame, 22*fps, 23*fps, DEFAULT_FOCUS, RULING_A_FOCUS),
+    // 14–26s: full view — analysis builds (complete at 22s, both rulings visible by 25s)
+    if (frame < 26 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
+    // 26–27.5s: zoom onto Ruling A
+    if (frame < 27.5 * fps) return {
+      scale: lerp(frame, 26*fps, 27.5*fps, 1, RULING_SCALE),
+      focus: lerpPt(frame, 26*fps, 27.5*fps, DEFAULT_FOCUS, RULING_A_FOCUS),
     };
-    // 23.5–25s: hold Ruling A
-    if (frame < 25 * fps) return { scale: RULING_SCALE, focus: RULING_A_FOCUS };
-    // 25–26.5s: pull back
-    if (frame < 26.5 * fps) return {
-      scale: lerp(frame, 25*fps, 26.5*fps, RULING_SCALE, 1),
-      focus: lerpPt(frame, 25*fps, 26.5*fps, RULING_A_FOCUS, DEFAULT_FOCUS),
+    // 27.5–30s: hold Ruling A
+    if (frame < 30 * fps) return { scale: RULING_SCALE, focus: RULING_A_FOCUS };
+    // 30–31.5s: pull back
+    if (frame < 31.5 * fps) return {
+      scale: lerp(frame, 30*fps, 31.5*fps, RULING_SCALE, 1),
+      focus: lerpPt(frame, 30*fps, 31.5*fps, RULING_A_FOCUS, DEFAULT_FOCUS),
     };
-    // 26.5–28s: zoom onto Ruling B
-    if (frame < 28 * fps) return {
-      scale: lerp(frame, 26.5*fps, 27.5*fps, 1, RULING_SCALE),
-      focus: lerpPt(frame, 26.5*fps, 27.5*fps, DEFAULT_FOCUS, RULING_B_FOCUS),
+    // 31.5–33s: zoom onto Ruling B
+    if (frame < 33 * fps) return {
+      scale: lerp(frame, 31.5*fps, 33*fps, 1, RULING_SCALE),
+      focus: lerpPt(frame, 31.5*fps, 33*fps, DEFAULT_FOCUS, RULING_B_FOCUS),
     };
-    // 28–29.5s: hold Ruling B
-    if (frame < 29.5 * fps) return { scale: RULING_SCALE, focus: RULING_B_FOCUS };
-    // 29.5–31s: pull back
-    if (frame < 31 * fps) return {
-      scale: lerp(frame, 29.5*fps, 31*fps, RULING_SCALE, 1),
-      focus: lerpPt(frame, 29.5*fps, 31*fps, RULING_B_FOCUS, DEFAULT_FOCUS),
+    // 33–35.5s: hold Ruling B
+    if (frame < 35.5 * fps) return { scale: RULING_SCALE, focus: RULING_B_FOCUS };
+    // 35.5–37s: pull back
+    if (frame < 37 * fps) return {
+      scale: lerp(frame, 35.5*fps, 37*fps, RULING_SCALE, 1),
+      focus: lerpPt(frame, 35.5*fps, 37*fps, RULING_B_FOCUS, DEFAULT_FOCUS),
     };
-    // 31s+: full view — all outputs visible, scroll reveals pre-IND questions
+    // 37s+: full view — all outputs visible, scroll reveals lower content
     return { scale: 1, focus: DEFAULT_FOCUS };
   })();
 
@@ -1324,14 +1382,14 @@ export const WorkspaceScene: React.FC = () => {
   const ty = 540 - focus.y * scale;
 
   // Typing runs while zoomed into copilot (7s), finishes just before submit (9s)
-  const typingProgress = interpolate(frame, [7 * fps, 8.7 * fps], [0, 1], {
+  const typingProgress = interpolate(frame, [9 * fps, 11.7 * fps], [0, 1], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-  const fadeToBlack = interpolate(frame, [39 * fps, 41 * fps], [0, 1], {
+  const fadeToBlack = interpolate(frame, [44 * fps, 46.5 * fps], [0, 1], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
   // Scroll reveals WHAT TO CONFIRM + pre-IND questions after rulings zooms finish
-  const scrollY = interpolate(frame, [32 * fps, 37 * fps], [0, -320], {
+  const scrollY = interpolate(frame, [38 * fps, 44 * fps], [0, -420], {
     extrapolateLeft: "clamp", extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.quad),
   });
