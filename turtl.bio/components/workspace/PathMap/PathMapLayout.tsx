@@ -44,14 +44,23 @@ interface TopNavProps {
   setActiveTab: (t: NavTab) => void;
   typeCEnabled: boolean;
   onToggleTypeC: () => void;
+  onNavigate?: (view: string) => void;
 }
 
-function TopNav({ activeTab, setActiveTab, typeCEnabled, onToggleTypeC }: TopNavProps) {
+function TopNav({ activeTab, setActiveTab, typeCEnabled, onToggleTypeC, onNavigate }: TopNavProps) {
   const tabs: { id: NavTab; label: string }[] = [
     { id: "explorer", label: "Explorer" },
     { id: "path-map", label: "Path Map" },
     { id: "regulatory-ai", label: "Regulatory AI" },
   ];
+
+  const handleTabClick = (tab: { id: NavTab; label: string }) => {
+    if (tab.id === "path-map") {
+      setActiveTab(tab.id);
+    } else {
+      onNavigate?.(tab.id);
+    }
+  };
 
   return (
     <header className="h-11 bg-ws-mid border-b border-ws-highest/40 flex items-center justify-between px-4 shrink-0 z-50">
@@ -64,7 +73,7 @@ function TopNav({ activeTab, setActiveTab, typeCEnabled, onToggleTypeC }: TopNav
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab)}
               className={`px-3 py-1.5 font-label text-[11px] font-medium rounded-sm transition-colors ${
                 activeTab === tab.id
                   ? "text-ws-teal bg-ws-teal/10"
@@ -279,7 +288,12 @@ function MapStatusBar({ viewMode, typeCEnabled, nodeCount, edgeCount }: MapStatu
 
 // ─── Main PathMapLayout ───────────────────────────────────────────────────────
 
-export function PathMapLayout() {
+interface PathMapLayoutProps {
+  activeView?: string;
+  onNavigate?: (view: string) => void;
+}
+
+export function PathMapLayout({ onNavigate }: PathMapLayoutProps) {
   const [activeTab, setActiveTab] = useState<NavTab>("path-map");
   const [viewMode, setViewMode] = useState<ViewMode>("graph");
   const [typeCEnabled, setTypeCEnabled] = useState(false);
@@ -313,6 +327,7 @@ export function PathMapLayout() {
         setActiveTab={setActiveTab}
         typeCEnabled={typeCEnabled}
         onToggleTypeC={() => setTypeCEnabled((v) => !v)}
+        onNavigate={onNavigate}
       />
       <SubToolbar viewMode={viewMode} setViewMode={setViewMode} />
       <MapTitleBar />
