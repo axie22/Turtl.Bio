@@ -1,4 +1,4 @@
-export type NodeStatus = "done" | "in-progress" | "active" | "planned" | "backlog";
+export type NodeStatus = "done" | "in-progress" | "active" | "planned" | "backlog" | "runway-risk";
 export type NodeLane = "funding" | "sponsor" | "fda";
 
 export interface MapNode {
@@ -8,11 +8,14 @@ export interface MapNode {
   lane: NodeLane;
   status: NodeStatus;
   isMilestone?: boolean;
-  col: number; // 0-3
-  row: number; // 0-3
-  ganttStart: number; // quarter (1-4, fractional)
-  ganttDuration: number; // in quarters
-  scenario?: "typeC"; // only shown in typeC scenario
+  col: number;   // 0–5
+  row: number;   // 0–3
+  ganttStart: number;       // quarter (1–4+, fractional)
+  ganttDuration: number;    // in quarters
+  ganttShiftOnTypeC?: number; // extra quarters added when Type C is enabled
+  ganttIsLongBar?: boolean;  // renders as a full-width background bar (Env Assess)
+  ganttIsGap?: boolean;      // renders with hatched amber style (runway risk)
+  scenario?: "typeC";        // only shown when Type C toggle is on
 }
 
 export interface MapEdge {
@@ -20,6 +23,7 @@ export interface MapEdge {
   to: string;
   label: string;
   bold?: boolean;
+  dashed?: boolean;
   scenario?: "typeC";
 }
 
@@ -27,62 +31,67 @@ export const PROGRAM_NAME = "Path to Market — END-101";
 export const PROGRAM_SUBTITLE = "auto-plotted from TPP + submission docs";
 export const PROGRAM_DATE = "06-25-2026";
 
-// Grid layout constants
-export const CARD_W = 162;
-export const CARD_H = 76;
-export const COL_X = [20, 222, 444, 666];
-export const ROW_Y = [22, 148, 264, 362];
-export const CANVAS_W = 850;
-export const CANVAS_H = 458;
+// ─── Grid constants ────────────────────────────────────────────────────────────
+// 6 columns × 4 rows
+export const CARD_W = 158;
+export const CARD_H = 70;
+export const COL_X = [20, 204, 388, 572, 756, 900];
+export const ROW_Y = [20, 142, 262, 382];
+export const CANVAS_W = 1090;
+export const CANVAS_H = 470;
+
+// ─── Nodes ────────────────────────────────────────────────────────────────────
+//
+// Layout (Jira / dependency graph):
+//
+// Col:     0           1            2              3             4              5
+// FDA(0):              INT Prep     INT Mtg        ODD           Type B Prep    Type B Mtg
+// Spon(1): POC         Non-GLP      GLP Tox        GLP Reporting
+// Mixed(2):In vitro    Env Assess   Seed close     Type C Prep*  Type C Mtg*   IND Sub
+// Fund(3): SBIR P1     P1→2 gap     SBIR P2        Phase 2B      Series A
+//
+// Shape: POC fans out → everything funnels into GLP Tox → squeezes through Type B → splits to IND + Series A
 
 export const NODES: MapNode[] = [
-  // Funding lane (row 0)
-  {
-    id: "FUND-01",
-    label: "SBIR/STTR Phase 1",
-    subtitle: "$300–$350K feasibility",
-    lane: "funding",
-    status: "active",
-    col: 0, row: 0,
-    ganttStart: 1, ganttDuration: 1,
-  },
-  {
-    id: "FUND-02",
-    label: "Seed close",
-    subtitle: "colonization + the story",
-    lane: "funding",
-    status: "planned",
-    col: 1, row: 0,
-    ganttStart: 1.5, ganttDuration: 0.5,
-  },
-  {
-    id: "FUND-03",
-    label: "SBIR Phase 2",
-    subtitle: "$1–2.5M · IND-enabling",
-    lane: "funding",
-    status: "backlog",
-    col: 2, row: 0,
-    ganttStart: 2, ganttDuration: 1,
-  },
-  {
-    id: "FUND-04",
-    label: "Series A",
-    subtitle: "clear path to IND",
-    lane: "funding",
-    status: "backlog",
-    col: 3, row: 0,
-    ganttStart: 3.5, ganttDuration: 0.5,
-  },
 
-  // Sponsor lane (row 1)
+  // ── Root nodes (col 0) ──────────────────────────────────────────────────────
   {
     id: "END-01",
     label: "POC complete",
-    subtitle: "mouse + Yucatan colonization",
+    subtitle: "Yucatan colonization · chassis-native",
     lane: "sponsor",
     status: "done",
     col: 0, row: 1,
     ganttStart: 1, ganttDuration: 0.5,
+  },
+  {
+    id: "END-00",
+    label: "In vitro studies",
+    subtitle: "mechanism · metabolic validation",
+    lane: "sponsor",
+    status: "done",
+    col: 0, row: 2,
+    ganttStart: 1, ganttDuration: 0.5,
+  },
+  {
+    id: "FUND-01",
+    label: "SBIR Phase 1",
+    subtitle: "$300–350K · feasibility",
+    lane: "funding",
+    status: "active",
+    col: 0, row: 3,
+    ganttStart: 1, ganttDuration: 1,
+  },
+
+  // ── Wave 1 (col 1) ──────────────────────────────────────────────────────────
+  {
+    id: "END-IP",
+    label: "INTERACT Prep",
+    subtitle: "briefing doc · FDA request",
+    lane: "fda",
+    status: "planned",
+    col: 1, row: 0,
+    ganttStart: 1.5, ganttDuration: 0.25,
   },
   {
     id: "END-02",
@@ -94,6 +103,39 @@ export const NODES: MapNode[] = [
     ganttStart: 1.5, ganttDuration: 0.75,
   },
   {
+    id: "END-08",
+    label: "Environmental Assess.",
+    subtitle: "parallel · runs Q1→Q4",
+    lane: "sponsor",
+    status: "planned",
+    col: 1, row: 2,
+    // Special Gantt rendering: full-width long bar
+    ganttStart: 1, ganttDuration: 3.25,
+    ganttIsLongBar: true,
+  },
+  {
+    id: "FUND-GAP",
+    label: "Phase 1→2 gap",
+    subtitle: "runway risk · no capital",
+    lane: "funding",
+    status: "runway-risk",
+    col: 1, row: 3,
+    ganttStart: 2, ganttDuration: 0.5,
+    ganttIsGap: true,
+  },
+
+  // ── Wave 2 (col 2) ──────────────────────────────────────────────────────────
+  {
+    id: "END-03",
+    label: "INTERACT Meeting",
+    subtitle: "before definitive tox",
+    lane: "fda",
+    status: "planned",
+    isMilestone: true,
+    col: 2, row: 0,
+    ganttStart: 1.75, ganttDuration: 0.25,
+  },
+  {
     id: "END-04",
     label: "GLP Tox",
     subtitle: "3 doses · IND-enabling",
@@ -101,105 +143,174 @@ export const NODES: MapNode[] = [
     status: "backlog",
     col: 2, row: 1,
     ganttStart: 2.5, ganttDuration: 1,
+    ganttShiftOnTypeC: 0.25,
   },
   {
-    id: "END-05",
-    label: "Pre-IND · Type B",
-    subtitle: "FDA must-tox +",
-    lane: "fda",
-    status: "backlog",
-    isMilestone: true,
-    col: 3, row: 1,
-    ganttStart: 3.5, ganttDuration: 0.25,
-  },
-
-  // Mixed row 2
-  {
-    id: "END-03",
-    label: "INTERACT meeting",
-    subtitle: "before definitive tox",
-    lane: "fda",
+    id: "FUND-02",
+    label: "Seed close",
+    subtitle: "colonization data + story",
+    lane: "funding",
     status: "planned",
-    isMilestone: true,
-    col: 1, row: 2,
+    col: 2, row: 2,
     ganttStart: 1.5, ganttDuration: 0.25,
   },
   {
+    id: "FUND-03",
+    label: "SBIR Phase 2",
+    subtitle: "$1–2.5M · IND-enabling",
+    lane: "funding",
+    status: "backlog",
+    col: 2, row: 3,
+    ganttStart: 2.5, ganttDuration: 1,
+  },
+
+  // ── Wave 3 (col 3) ──────────────────────────────────────────────────────────
+  {
     id: "END-07",
-    label: "Orphan Drug Desig.",
-    subtitle: "7-yr exclusivity",
+    label: "ODD Submission",
+    subtitle: "7-yr exclusivity · rare disease",
     lane: "fda",
     status: "backlog",
-    col: 2, row: 2,
+    col: 3, row: 0,
     ganttStart: 2, ganttDuration: 0.5,
   },
   {
+    id: "END-GR",
+    label: "GLP Reporting",
+    subtitle: "final report · IND package",
+    lane: "sponsor",
+    status: "backlog",
+    col: 3, row: 1,
+    ganttStart: 3.5, ganttDuration: 0.25,
+    ganttShiftOnTypeC: 0.25,
+  },
+  {
+    id: "FUND-04",
+    label: "Phase 2B",
+    subtitle: "bridge round · pre-Series A",
+    lane: "funding",
+    status: "backlog",
+    col: 3, row: 3,
+    ganttStart: 3, ganttDuration: 0.5,
+    ganttShiftOnTypeC: 0.25,
+  },
+
+  // ── Wave 4 (col 4) ──────────────────────────────────────────────────────────
+  {
+    id: "END-BP",
+    label: "Type B Prep",
+    subtitle: "pre-IND briefing package",
+    lane: "fda",
+    status: "backlog",
+    col: 4, row: 0,
+    ganttStart: 3.5, ganttDuration: 0.25,
+    ganttShiftOnTypeC: 0.25,
+  },
+  {
+    id: "FUND-05",
+    label: "Series A",
+    subtitle: "clear path to IND",
+    lane: "funding",
+    status: "backlog",
+    col: 4, row: 3,
+    ganttStart: 3.75, ganttDuration: 0.25,
+    ganttShiftOnTypeC: 0.25,
+  },
+
+  // ── Wave 5 (col 5) ──────────────────────────────────────────────────────────
+  {
+    id: "END-05",
+    label: "Type B Meeting",
+    subtitle: "pre-IND · safety + design",
+    lane: "fda",
+    status: "backlog",
+    isMilestone: true,
+    col: 5, row: 0,
+    ganttStart: 3.75, ganttDuration: 0.25,
+    ganttShiftOnTypeC: 0.25,
+  },
+  {
     id: "END-06",
-    label: "IND submission",
+    label: "IND Submission",
     subtitle: "contingent on Type B",
     lane: "fda",
     status: "backlog",
     isMilestone: true,
-    col: 3, row: 2,
+    col: 5, row: 2,
     ganttStart: 4, ganttDuration: 0.25,
+    ganttShiftOnTypeC: 0.25,
   },
 
-  // Bottom row 3
+  // ── Type C scenario nodes (only shown when toggle is on) ────────────────────
   {
-    id: "END-08",
-    label: "Environmental Assess.",
-    subtitle: "parallel · runs throughout",
-    lane: "sponsor",
-    status: "backlog",
-    col: 1, row: 3,
-    ganttStart: 1.5, ganttDuration: 2.5,
-  },
-
-  // Type C scenario node (only visible in typeC mode, replaces END-07 position)
-  {
-    id: "END-0C",
-    label: "Pre-IND · Type C",
-    subtitle: "CMC focus · FDA-requested",
+    id: "END-CP",
+    label: "Type C Prep",
+    subtitle: "CMC focus · optional",
     lane: "fda",
     status: "planned",
     isMilestone: true,
     scenario: "typeC",
-    col: 2, row: 2,
+    col: 3, row: 2,
+    ganttStart: 2.5, ganttDuration: 0.25,
+  },
+  {
+    id: "END-0C",
+    label: "Type C Meeting",
+    subtitle: "FDA-requested · delays Type B",
+    lane: "fda",
+    status: "planned",
+    isMilestone: true,
+    scenario: "typeC",
+    col: 4, row: 2,
     ganttStart: 2.75, ganttDuration: 0.25,
   },
 ];
 
+// ─── Edges ────────────────────────────────────────────────────────────────────
+
 export const EDGES: MapEdge[] = [
-  // Bold story edges
-  { from: "END-01", to: "FUND-02", label: "unlocks seed", bold: true },
-  { from: "FUND-03", to: "END-04", label: "funds", bold: true },
-  { from: "END-05", to: "FUND-04", label: "unlocks raise", bold: true },
+  // ── Three bold story edges ───────────────────────────────────────────────────
+  { from: "END-01", to: "END-IP",   label: "informs",      bold: true },
+  { from: "END-01", to: "FUND-02",  label: "unlocks seed", bold: true },
+  { from: "FUND-03", to: "END-04",  label: "funds",        bold: true },
+  { from: "END-05", to: "FUND-05",  label: "clear-to-file",bold: true },
 
-  // Funding chain
-  { from: "FUND-01", to: "FUND-02", label: "precedes" },
-  { from: "FUND-02", to: "FUND-03", label: "bridges" },
+  // ── Funding chain ────────────────────────────────────────────────────────────
+  { from: "FUND-01", to: "FUND-GAP", label: "runs out" },
+  { from: "FUND-GAP", to: "FUND-03", label: "bridges" },
+  { from: "FUND-02", to: "FUND-03", label: "precedes" },
+  { from: "FUND-03", to: "FUND-04", label: "precedes" },
 
-  // POC fans out
-  { from: "END-01", to: "END-02", label: "unlocks" },
-  { from: "END-01", to: "END-03", label: "informs" },
+  // ── POC fans out ─────────────────────────────────────────────────────────────
+  { from: "END-01", to: "END-02",   label: "unlocks" },
+  { from: "END-00", to: "END-04",   label: "informs design" },
 
-  // Converging into GLP Tox
-  { from: "END-02", to: "END-04", label: "informs duration" },
-  { from: "END-03", to: "END-04", label: "informs design" },
+  // ── INTERACT sequence ─────────────────────────────────────────────────────────
+  { from: "END-IP", to: "END-03",   label: "precedes" },
 
-  // GLP Tox → right
-  { from: "END-04", to: "END-05", label: "is blocked by" },
+  // ── Everything funnels into GLP Tox ──────────────────────────────────────────
+  { from: "END-02", to: "END-04",   label: "informs duration" },
+  { from: "END-03", to: "END-04",   label: "informs design" },
 
-  // Type B gates
-  { from: "END-05", to: "END-06", label: "gates" },
-  { from: "END-08", to: "END-06", label: "runs parallel" },
+  // ── GLP Tox → narrow waist ───────────────────────────────────────────────────
+  { from: "END-04", to: "END-GR",   label: "produces" },
+  { from: "END-GR", to: "END-BP",   label: "unlocks" },
+  { from: "END-BP", to: "END-05",   label: "precedes" },
 
-  // Type C scenario
-  { from: "END-03", to: "END-0C", label: "precedes", scenario: "typeC" },
-  { from: "END-0C", to: "END-05", label: "moves B back", scenario: "typeC" },
+  // ── Type B splits right ───────────────────────────────────────────────────────
+  { from: "END-05", to: "END-06",   label: "gates" },
+
+  // ── Env Assess long arc → IND ────────────────────────────────────────────────
+  { from: "END-08", to: "END-06",   label: "needs EA done" },
+
+  // ── Optional: Type C detour ───────────────────────────────────────────────────
+  { from: "END-03", to: "END-CP",   label: "precedes",      scenario: "typeC", dashed: true },
+  { from: "END-CP", to: "END-0C",   label: "precedes",      scenario: "typeC", dashed: true },
+  { from: "END-0C", to: "END-BP",   label: "pushes B back", scenario: "typeC", dashed: true },
 ];
 
-// Gantt quarter labels
+// ─── Gantt config ─────────────────────────────────────────────────────────────
+
 export const GANTT_QUARTERS = [
   { q: 1, label: "Q1 2026", sublabel: "POC → Phase 1" },
   { q: 2, label: "Q2 2026", sublabel: "INTERACT + seed" },
@@ -207,24 +318,28 @@ export const GANTT_QUARTERS = [
   { q: 4, label: "Q4 2026", sublabel: "Pre-IND" },
 ];
 
+// ─── Styling ──────────────────────────────────────────────────────────────────
+
 export const STATUS_CONFIG: Record<
   NodeStatus,
   { label: string; bg: string; text: string }
 > = {
-  done: { label: "Done", bg: "bg-ws-teal/20", text: "text-ws-teal" },
-  "in-progress": { label: "In Progress", bg: "bg-blue-500/20", text: "text-blue-400" },
-  active: { label: "Active", bg: "bg-emerald-500/20", text: "text-emerald-400" },
-  planned: { label: "Planned", bg: "bg-amber-500/20", text: "text-amber-400" },
-  backlog: { label: "Backlog", bg: "bg-ws-highest/60", text: "text-ws-text/40" },
+  done:           { label: "Done",         bg: "bg-ws-teal/20",      text: "text-ws-teal" },
+  "in-progress":  { label: "In Progress",  bg: "bg-blue-500/20",     text: "text-blue-400" },
+  active:         { label: "Active",       bg: "bg-emerald-500/20",  text: "text-emerald-400" },
+  planned:        { label: "Planned",      bg: "bg-amber-500/20",    text: "text-amber-400" },
+  backlog:        { label: "Backlog",      bg: "bg-ws-highest/60",   text: "text-ws-text/40" },
+  "runway-risk":  { label: "Runway Risk",  bg: "bg-amber-500/10",    text: "text-amber-400" },
 };
 
 export const LANE_COLOR: Record<NodeLane, string> = {
   funding: "#22c55e",
   sponsor: "#54dcbc",
-  fda: "#60a5fa",
+  fda:     "#60a5fa",
 };
 
-// Canned copilot response for demo
+// ─── Copilot canned response ──────────────────────────────────────────────────
+
 export const COPILOT_RESPONSE = {
   analysis: `Across the loaded nodes, the controlling nonclinical literature for a live biotherapeutic product is the FDA 2022 LBP draft guidance and ICH S6(R1). Both describe toxicology expectations in terms of the proposed clinical population and route, rather than prescribing a fixed study for every modality.
 
