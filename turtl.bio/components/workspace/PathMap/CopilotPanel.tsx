@@ -12,6 +12,9 @@ type CopilotStep =
   | "done";
 
 type ResponseTab = "sources" | "analysis" | "recommendation";
+type VerificationStatus = "pending" | "accepted" | "modified" | "rejected";
+
+const VERIFICATION_LOG_KEY = "turtl_copilot_verifications";
 
 const STEP_LABELS: Record<CopilotStep, string> = {
   idle: "",
@@ -44,6 +47,9 @@ export function CopilotPanel({
   const [query, setQuery] = useState("Does this tox study apply here?");
   const [step, setStep] = useState<CopilotStep>("idle");
   const [activeTab, setActiveTab] = useState<ResponseTab>("analysis");
+  const [verification, setVerification] = useState<VerificationStatus>("pending");
+  const [modifyNote, setModifyNote] = useState("");
+  const [showModifyInput, setShowModifyInput] = useState(false);
   const stepRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const selectedNodeObjects = NODES.filter((n) => selectedNodes.has(n.id));
@@ -51,6 +57,9 @@ export function CopilotPanel({
   const handleAsk = useCallback(() => {
     if (step !== "idle" && step !== "done") return;
     setStep("decomposing");
+    setVerification("pending");
+    setShowModifyInput(false);
+    setModifyNote("");
 
     STEP_ORDER.forEach((s, i) => {
       stepRef.current = setTimeout(() => {
@@ -58,6 +67,17 @@ export function CopilotPanel({
       }, i * 700);
     });
   }, [step]);
+
+  const handleVerify = (status: VerificationStatus, note?: string) => {
+    setVerification(status);
+    if (status !== "modified") setShowModifyInput(false);
+    // Log to sessionStorage so corrections persist within the session
+    try {
+      const existing = JSON.parse(sessionStorage.getItem(VERIFICATION_LOG_KEY) || "[]");
+      existing.push({ status, note: note ?? null, query, timestamp: Date.now() });
+      sessionStorage.setItem(VERIFICATION_LOG_KEY, JSON.stringify(existing));
+    } catch { /* ignore */ }
+  };
 
   useEffect(() => {
     return () => clearTimeout(stepRef.current);
@@ -223,6 +243,24 @@ export function CopilotPanel({
             ))}
           </div>
 
+          {/* Step indicator */}
+          <div className="px-3 py-1.5 border-b border-ws-highest/10 flex items-center gap-2 shrink-0">
+            {(["sources", "analysis", "recommendation"] as ResponseTab[]).map((t, i) => (
+              <div key={t} className="flex items-center gap-1.5">
+                {i > 0 && <div className="w-3 h-px bg-ws-highest/30" />}
+                <span className={`font-label text-[8px] ${activeTab === t ? "text-ws-teal" : "text-ws-text/20"}`}>
+                  Step {i + 4}
+                </span>
+              </div>
+            ))}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <div className="w-3 h-px bg-ws-highest/30" />
+              <span className={`font-label text-[8px] ${verification !== "pending" ? "text-ws-teal" : "text-ws-text/20"}`}>
+                Step 6
+              </span>
+            </div>
+          </div>
+
           {/* Tab content */}
           <div className="flex-1 overflow-y-auto ws-scrollbar p-3">
             {activeTab === "analysis" && (
@@ -277,6 +315,76 @@ export function CopilotPanel({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Step 6 — Human Verification */}
+      {hasResponse && (
+        <div className="shrink-0 border-t border-ws-highest/20 p-3 space-y-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-label text-[8.5px] uppercase tracking-widest text-ws-text/30">
+              Step 6 — Human Verification
+            </span>
+            {verification !== "pending" && (
+              <span className={`font-label text-[8px] px-1.5 py-0.5 rounded-sm ${
+                verification === "accepted" ? "text-ws-teal bg-ws-teal/10" :
+                verification === "rejected" ? "text-red-400 bg-red-400/10" :
+                "text-amber-400 bg-amber-400/10"
+              }`}>
+                {verification === "accepted" ? "✓ Accepted" : verification === "rejected" ? "✗ Rejected" : "~ Modified"}
+              </span>
+            )}
+          </div>
+
+          {verification === "pending" && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleVerify("accepted")}
+                className="flex-1 py-1.5 rounded-sm border border-ws-teal/30 text-ws-teal font-label text-[9px] font-bold hover:bg-ws-teal/10 transition-colors"
+              >
+                Accept
+              </button>
+              <button
+                onClick={() => { setShowModifyInput(true); }}
+                className="flex-1 py-1.5 rounded-sm border border-amber-400/30 text-amber-400 font-label text-[9px] font-bold hover:bg-amber-400/10 transition-colors"
+              >
+                Modify
+              </button>
+              <button
+                onClick={() => handleVerify("rejected")}
+                className="flex-1 py-1.5 rounded-sm border border-red-400/30 text-red-400 font-label text-[9px] font-bold hover:bg-red-400/10 transition-colors"
+              >
+                Reject
+              </button>
+            </div>
+          )}
+
+          {showModifyInput && verification === "pending" && (
+            <div className="space-y-1.5">
+              <textarea
+                className="w-full bg-ws-bg border border-ws-highest/30 rounded-sm px-2 py-1.5 font-label text-[10px] text-ws-text placeholder:text-ws-text/20 focus:outline-none focus:ring-1 focus:ring-amber-400/40 resize-none"
+                rows={2}
+                placeholder="Describe your correction (logged as institutional memory)…"
+                value={modifyNote}
+                onChange={(e) => setModifyNote(e.target.value)}
+              />
+              <button
+                onClick={() => handleVerify("modified", modifyNote)}
+                disabled={!modifyNote.trim()}
+                className="w-full py-1.5 rounded-sm bg-amber-400/15 text-amber-400 font-label text-[9px] font-bold disabled:opacity-40 hover:bg-amber-400/25 transition-colors"
+              >
+                Log correction
+              </button>
+            </div>
+          )}
+
+          {verification !== "pending" && (
+            <p className="font-label text-[9px] text-ws-text/25 leading-relaxed">
+              {verification === "accepted" && "Logged. Accepted output becomes institutional memory for this program."}
+              {verification === "rejected" && "Logged. Rejection flagged — next query will not use this output as prior context."}
+              {verification === "modified" && `Logged with note: "${modifyNote}"`}
+            </p>
+          )}
         </div>
       )}
 

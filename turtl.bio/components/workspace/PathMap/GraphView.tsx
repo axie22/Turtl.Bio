@@ -43,7 +43,16 @@ function getEdgePath(src: MapNode, tgt: MapNode): string {
     return `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`;
   }
 
-  // All other cases → right-to-left cubic bezier (handles same-row, diagonal up/down)
+  // Long-span horizontal edge (3+ columns apart, same row) → wide arc below cluster
+  // Used for Env Assess → IND Submission so it doesn't tangle the cluster
+  if (tgt.col - src.col >= 3 && Math.abs(src.row - tgt.row) <= 1) {
+    const x1 = sx + CARD_W;
+    const x2 = tx;
+    const arcY = CANVAS_H + 22; // dips cleanly below all nodes
+    return `M ${x1},${scy} C ${x1 + 60},${arcY} ${x2 - 60},${arcY} ${x2},${tcy}`;
+  }
+
+  // Default → right-to-left cubic bezier (same-row, diagonal up/down)
   const x1 = sx + CARD_W; const x2 = tx;
   const mx = (x1 + x2) / 2;
   return `M ${x1},${scy} C ${mx},${scy} ${mx},${tcy} ${x2},${tcy}`;
@@ -140,8 +149,8 @@ function EdgeLayer({ nodes, edges }: EdgeLayerProps) {
     <svg
       className="absolute inset-0 pointer-events-none"
       width={CANVAS_W}
-      height={CANVAS_H}
-      style={{ overflow: "visible" }}
+      height={CANVAS_H + 60}
+      style={{ overflow: "visible", zIndex: 1 }}
     >
       <defs>
         <marker id="arr" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
@@ -224,11 +233,25 @@ export function GraphView({ typeCEnabled, selectedNodes, onNodeClick }: GraphVie
         className="relative"
         style={{ width: CANVAS_W, height: CANVAS_H, minWidth: CANVAS_W }}
       >
+        {/* Lane swim lane backgrounds */}
+        <div className="absolute inset-0 pointer-events-none flex flex-col" style={{ width: CANVAS_W, height: CANVAS_H }}>
+          {/* FDA lane band (rows 0) */}
+          <div style={{ position: "absolute", top: ROW_Y[0] - 10, height: ROW_Y[1] - ROW_Y[0], width: "100%", backgroundColor: "rgba(96,165,250,0.025)", borderBottom: "1px solid rgba(96,165,250,0.08)" }} />
+          {/* Sponsor lane band (rows 1–2) */}
+          <div style={{ position: "absolute", top: ROW_Y[1] - 2, height: ROW_Y[3] - ROW_Y[1], width: "100%", backgroundColor: "rgba(84,220,188,0.018)", borderBottom: "1px solid rgba(84,220,188,0.07)" }} />
+          {/* Funding lane band (row 3) */}
+          <div style={{ position: "absolute", top: ROW_Y[3] - 2, height: CANVAS_H - ROW_Y[3] + 4, width: "100%", backgroundColor: "rgba(34,197,94,0.02)" }} />
+          {/* Lane labels */}
+          <div style={{ position: "absolute", top: ROW_Y[0] + 2, left: 4, fontSize: 8, color: "rgba(96,165,250,0.35)", fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "0.15em", textTransform: "uppercase", writingMode: "horizontal-tb" }}>FDA</div>
+          <div style={{ position: "absolute", top: ROW_Y[1] + 2, left: 4, fontSize: 8, color: "rgba(84,220,188,0.3)", fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "0.15em", textTransform: "uppercase" }}>Sponsor</div>
+          <div style={{ position: "absolute", top: ROW_Y[3] + 2, left: 4, fontSize: 8, color: "rgba(34,197,94,0.3)", fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "0.15em", textTransform: "uppercase" }}>Funding</div>
+        </div>
+
         {/* Grid dots background */}
         <svg className="absolute inset-0 pointer-events-none" width={CANVAS_W} height={CANVAS_H}>
           <defs>
             <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="0.8" fill="rgba(49,53,60,0.5)" />
+              <circle cx="1" cy="1" r="0.8" fill="rgba(49,53,60,0.4)" />
             </pattern>
           </defs>
           <rect width={CANVAS_W} height={CANVAS_H} fill="url(#dots)" />
