@@ -1,5 +1,5 @@
-import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
+import { PathMapLayout } from "@/components/workspace/PathMap/PathMapLayout";
 
 export default function WorkspacePage() {
-    return <WorkspaceLayout />;
+  return <PathMapLayout />;
 }
