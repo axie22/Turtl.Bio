@@ -11,7 +11,7 @@ import {
 import { FONT } from "./fonts";
 import { C } from "./colors";
 
-// ─── Material Symbols font loader ───
+// ─── Material Symbols loader ──────────────────────────────────────────────────
 
 const MATERIAL_SYMBOLS_CSS =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block";
@@ -22,160 +22,332 @@ function useMaterialSymbols() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = MATERIAL_SYMBOLS_CSS;
-    link.onload = () => {
-      // Give the font time to apply after CSS loads
-      document.fonts.ready.then(() => continueRender(handle));
-    };
+    link.onload = () => { document.fonts.ready.then(() => continueRender(handle)); };
     link.onerror = () => continueRender(handle);
     document.head.appendChild(link);
-    return () => {
-      document.head.removeChild(link);
-    };
+    return () => { document.head.removeChild(link); };
   }, [handle]);
 }
 
-// ─── Data ───
+// ─── Data: evidence cards ─────────────────────────────────────────────────────
 
 const EVIDENCE_CARDS = [
   {
-    id: "ich-s6r1",
-    source: "ICH S6(R1)",
-    quote: `"Safety studies should generally be conducted in both sexes. However, if a product is intended for use in only one gender, single-sex studies may be appropriate."`,
+    id: "ich-m3r2",
+    source: "ICH M3(R2)",
+    ref: "Table 1 — Repeat-dose tox",
+    quote: `"A full organ histopathological examination should be performed on animals from the high-dose and control groups in studies of one month or greater duration."`,
     summary:
-      "Supports male-only tox studies when the indication is sex-restricted. Biological justification must be documented.",
+      "Full organ panel required for repeat-dose tox supporting Phase 1. Limiting to rectum/colon only requires explicit FDA written concurrence.",
   },
   {
-    id: "ich-s9",
-    source: "ICH S9",
-    quote: `"Reproductive toxicology studies are generally not required prior to Phase I trials in cancer patients. Requirements should reflect the intended patient population."`,
+    id: "21cfr-312",
+    source: "21 CFR 312.23(a)(8)",
+    ref: "IND Pharm/Tox requirements",
+    quote: `"The IND must contain adequate information about pharmacological and toxicological studies... to permit an assessment of the reasonable safety of the drug for testing in humans."`,
     summary:
-      "Reproductive tox flexibility applies for oncology. Male-only populations reduce female animal study requirements.",
+      "A new rectal route for a novel SCI indication triggers a fresh nonclinical review. Route-specific and indication-specific requirements apply.",
   },
   {
-    id: "fda-guidance",
-    source: "FDA Guidance",
-    quote: `"The need for studies in both sexes should be considered based on the proposed clinical indication and target population."`,
+    id: "505b2",
+    source: "505(b)(2) FDA Guidance",
+    ref: "Applications Covered by §505(b)(2)",
+    quote: `"Reliance on published literature or an approved application does not relieve the applicant of the obligation to submit all information required."`,
     summary:
-      "Indication-specific population drives sex selection. Male-only indications have established precedent for single-sex packages.",
+      "505(b)(2) does not automatically waive nonclinical requirements. Written FDA concurrence required before any study is omitted.",
   },
 ];
 
 const PRECEDENT_CASES = [
   {
-    id: "pluvicto",
-    name: "Pluvicto",
-    company: "Novartis",
-    indication: "mCRPC",
-    statusLabel: "FDA APPROVED",
-    summary: "Male-only studies accepted",
-    fdaResponse: `"Accepted protocol based on male-specific indication."`,
+    id: "qutenza",
+    name: "Qutenza",
+    company: "Astellas Pharma",
+    indication: "Neuropathic Pain",
+    statusLabel: "NDA 022395",
+    summary: "Full systemic safety required",
+    fdaResponse: `"Full systemic safety data required despite existing capsaicin literature. 'Ubiquitous use' not accepted as a nonclinical safety waiver."`,
   },
   {
-    id: "xtandi",
-    name: "Xtandi",
-    company: "Astellas",
-    indication: "CRPC",
-    statusLabel: "VALIDATED",
-    summary: "Single-sex tox",
-    fdaResponse: `"Validated male-only study design for prostate oncology indications."`,
+    id: "novel-route",
+    name: "505(b)(2) Novel Routes",
+    company: "Multiple applicants",
+    indication: "Various (alternate route)",
+    statusLabel: "Consistent pattern",
+    summary: "New nonclinical data required",
+    fdaResponse: `"New nonclinical data required when route substantially changes absorption profile, even for well-characterized compounds."`,
   },
 ];
 
-const EXPLORER_FOLDERS = [
-  { name: "m1-administrative", open: false },
-  { name: "m2-summaries", open: false },
-  { name: "m3-quality", open: false },
+// ─── Data: file tree ──────────────────────────────────────────────────────────
+
+interface TreeItem {
+  name: string;
+  type: "folder" | "file";
+  open?: boolean;
+  active?: boolean;
+  dim?: boolean;       // older versions (v1, v2)
+  children?: TreeItem[];
+}
+
+const FILE_TREE: TreeItem[] = [
+  { name: "TPP_CAPS-001_v2.xlsx",          type: "file", active: true },
+  { name: "formulation-CMC-summary.xlsx",   type: "file" },
   {
-    name: "m4-nonclinical",
+    name: "regulatory-refs",
+    type: "folder",
     open: true,
-    active: true,
-    files: [
-      { name: "tox-study-male-cynomolgus.pdf", active: true },
-      { name: "biodistribution-study.pdf", active: false },
-      { name: "pharmacology-primary.pdf", active: false },
-      { name: "genotoxicity-assessment.pdf", active: false },
+    children: [
+      { name: "ICH-M3R2_Source1.pdf",            type: "file" },
+      { name: "21CFR-312.23_Source2.pdf",         type: "file" },
+      { name: "505b2-guidance_Source5.pdf",       type: "file" },
+      { name: "fda-excipient-guidance.pdf",       type: "file" },
+      { name: "fda-rectal-route-precedent.pdf",   type: "file" },
+      { name: "sba-NDA022395-review.pdf",         type: "file" },
     ],
   },
-  { name: "m5-clinical", open: false },
+  {
+    name: "preclinical",
+    type: "folder",
+    open: true,
+    children: [
+      {
+        name: "dog-glp-4wk",
+        type: "folder",
+        open: true,
+        children: [
+          { name: "protocol_v1.pdf",                type: "file", dim: true },
+          { name: "protocol_v2.pdf",                type: "file", dim: true },
+          { name: "protocol_v3.pdf",                type: "file"            },
+          { name: "toxicokinetics-report.pdf",      type: "file"            },
+          { name: "dose-formulation-stability.pdf", type: "file"            },
+        ],
+      },
+      {
+        name: "histopathology",
+        type: "folder",
+        open: true,
+        children: [
+          { name: "scope-assessment_v1.pdf",   type: "file", dim: true },
+          { name: "scope-assessment_v2.pdf",   type: "file"            },
+          { name: "organ-weight-data.xlsx",    type: "file"            },
+          { name: "full-organ-checklist.xlsx", type: "file"            },
+        ],
+      },
+      {
+        name: "rodent-study-design",
+        type: "folder",
+        open: true,
+        children: [
+          { name: "feasibility-assessment.md", type: "file" },
+          { name: "cro-comparison.md",         type: "file" },
+        ],
+      },
+      { name: "pk-absorption-profile.pdf",      type: "file" },
+      { name: "systemic-exposure-analysis.pdf", type: "file" },
+    ],
+  },
+  {
+    name: "ind-sections",
+    type: "folder",
+    open: true,
+    children: [
+      { name: "introduction.md",               type: "file" },
+      { name: "nonclinical-overview_draft.md", type: "file" },
+      { name: "pharmacology-summary.md",       type: "file" },
+      { name: "cmc-overview_draft.md",         type: "file" },
+      { name: "clinical-protocol-outline.md",  type: "file" },
+    ],
+  },
+  {
+    name: "pre-ind-prep",
+    type: "folder",
+    open: true,
+    children: [
+      { name: "meeting-request-draft.md",  type: "file"            },
+      { name: "fda-questions_v1.md",       type: "file", dim: true },
+      { name: "fda-questions_v2.md",       type: "file"            },
+      { name: "briefing-doc-outline.md",   type: "file"            },
+    ],
+  },
+  {
+    name: "cmc",
+    type: "folder",
+    open: false,
+    children: [
+      { name: "drug-substance-spec.xlsx", type: "file" },
+      { name: "stability-protocol.md",    type: "file" },
+    ],
+  },
 ];
 
-// ─── Helpers ───
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 type Phase = "idle" | "analyzing" | "complete";
 
 function getPhase(frame: number, fps: number): Phase {
-  // Shot 2 (enter workspace): frames 0-90 → idle view
-  // Shot 3 (query input): frames 90-330 → still idle (camera on copilot)
-  // Frame 330: submit → analyzing
-  // Frame 630: complete
-  const submitFrame = 11 * fps; // ~330
-  const completeFrame = 21 * fps; // ~630
-  if (frame < submitFrame) return "idle";
-  if (frame < completeFrame) return "analyzing";
+  if (frame < 12 * fps) return "idle";
+  if (frame < 22 * fps) return "analyzing";
   return "complete";
 }
 
 function getVisibleCards(frame: number, fps: number): number {
-  const submitFrame = 11 * fps;
+  const submitFrame = 12 * fps;
   if (frame < submitFrame) return 0;
-  const elapsed = frame - submitFrame;
-  const interval = 1.5 * fps; // 45 frames between cards
-  return Math.min(Math.floor(elapsed / interval) + 1, EVIDENCE_CARDS.length);
+  return Math.min(Math.floor((frame - submitFrame) / (1.5 * fps)) + 1, EVIDENCE_CARDS.length);
 }
 
-// ─── Sub-Components (all inline styles, no Tailwind) ───
+const monoLabel = (size = 10, color: string = C.textFaint): React.CSSProperties => ({
+  fontFamily: FONT.label,
+  fontSize: size,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.14em",
+  color,
+});
 
-const ActivityBar: React.FC = () => {
-  const icons = ["folder_open", "search", "account_tree", "pest_control", "smart_toy"];
+// ─── Activity bar ─────────────────────────────────────────────────────────────
+
+const ActivityBar: React.FC = () => (
+  <div
+    style={{
+      width: 48,
+      background: C.surfaceAlt,
+      borderRight: `1px solid ${C.border}`,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      paddingTop: 12,
+      gap: 4,
+      flexShrink: 0,
+    }}
+  >
+    {["folder_open", "search", "account_tree", "pest_control", "smart_toy"].map((icon, i) => (
+      <div
+        key={icon}
+        style={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          padding: "9px 0",
+          borderLeft: i === 0 ? `2px solid ${C.accent}` : "2px solid transparent",
+          background: i === 0 ? C.surface : "transparent",
+          color: i === 0 ? C.accent : C.textFaint,
+          fontFamily: "Material Symbols Outlined",
+          fontSize: 20,
+        }}
+      >
+        {icon}
+      </div>
+    ))}
+    <div style={{ marginTop: "auto", paddingBottom: 14 }}>
+      <div
+        style={{
+          width: 28, height: 28, background: C.border,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: "Material Symbols Outlined", fontSize: 15, color: C.textDim,
+        }}
+      >
+        account_circle
+      </div>
+    </div>
+  </div>
+);
+
+// ─── File tree (recursive) ────────────────────────────────────────────────────
+
+const TreeNode: React.FC<{ item: TreeItem; depth: number }> = ({ item, depth }) => {
+  const indent = 10 + depth * 14;
+
+  if (item.type === "folder") {
+    return (
+      <>
+        <div
+          style={{
+            paddingLeft: indent,
+            paddingRight: 8,
+            paddingTop: 3,
+            paddingBottom: 3,
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            background: item.active ? C.accentBg : "transparent",
+            borderLeft: item.active ? `2px solid ${C.accentBorder}` : "2px solid transparent",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "Material Symbols Outlined",
+              fontSize: 12,
+              color: C.textFaint,
+              transform: item.open ? "rotate(90deg)" : "none",
+              flexShrink: 0,
+            }}
+          >
+            chevron_right
+          </span>
+          <span
+            style={{
+              fontFamily: "Material Symbols Outlined",
+              fontSize: 13,
+              color: item.open ? C.accent : C.textDim,
+              flexShrink: 0,
+            }}
+          >
+            {item.open ? "folder_open" : "folder"}
+          </span>
+          <span
+            style={{
+              ...monoLabel(9, item.active ? C.accentStrong : C.textDim),
+            }}
+          >
+            {item.name}
+          </span>
+        </div>
+        {item.open &&
+          item.children?.map((child) => (
+            <TreeNode key={child.name} item={child} depth={depth + 1} />
+          ))}
+      </>
+    );
+  }
+
   return (
     <div
       style={{
-        width: 56,
-        background: C.lowest,
+        paddingLeft: indent,
+        paddingRight: 8,
+        paddingTop: 2,
+        paddingBottom: 2,
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        paddingTop: 16,
-        gap: 8,
-        flexShrink: 0,
+        gap: 5,
+        background: item.active ? C.accentBg : "transparent",
+        borderLeft: item.active
+          ? `2px solid ${C.accent}`
+          : "2px solid transparent",
       }}
     >
-      {icons.map((icon, i) => (
-        <div
-          key={icon}
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            padding: "8px 0",
-            borderLeft: i === 0 ? `2px solid ${C.teal}` : "2px solid transparent",
-            background: i === 0 ? C.mid : "transparent",
-            color: i === 0 ? C.teal : "rgba(223,226,235,0.4)",
-            fontFamily: "Material Symbols Outlined",
-            fontSize: 22,
-          }}
-        >
-          {icon}
-        </div>
-      ))}
-      <div style={{ marginTop: "auto", paddingBottom: 16 }}>
-        <div
-          style={{
-            width: 32,
-            height: 32,
-            background: C.highest,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: `1px solid rgba(60,74,69,0.3)`,
-            fontFamily: "Material Symbols Outlined",
-            fontSize: 16,
-            color: "rgba(223,226,235,0.6)",
-          }}
-        >
-          account_circle
-        </div>
-      </div>
+      <span
+        style={{
+          fontFamily: "Material Symbols Outlined",
+          fontSize: 12,
+          color: item.active ? C.accent : item.dim ? C.borderMid : C.textFaint,
+          flexShrink: 0,
+        }}
+      >
+        description
+      </span>
+      <span
+        style={{
+          fontFamily: FONT.label,
+          fontSize: 9,
+          letterSpacing: 0,
+          color: item.active ? C.accentStrong : item.dim ? C.borderMid : C.textDim,
+          fontWeight: item.active ? 600 : 400,
+        }}
+      >
+        {item.name}
+      </span>
     </div>
   );
 };
@@ -184,619 +356,537 @@ const ExplorerPanel: React.FC = () => (
   <div
     style={{
       width: 240,
-      background: C.lowest,
+      background: C.surface,
+      borderRight: `1px solid ${C.border}`,
       display: "flex",
       flexDirection: "column",
       flexShrink: 0,
-      borderRight: `1px solid rgba(49,53,60,0.3)`,
     }}
   >
     <div
       style={{
         height: 36,
-        padding: "0 16px",
+        padding: "0 14px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        borderBottom: `1px solid rgba(49,53,60,0.2)`,
+        borderBottom: `1px solid ${C.border}`,
       }}
     >
-      <span
-        style={{
-          fontFamily: FONT.label,
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 2,
-          color: C.textDim,
-          textTransform: "uppercase",
-        }}
-      >
-        Explorer
-      </span>
-      <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.textDim }}>
+      <span style={monoLabel(10, C.textDim)}>Explorer</span>
+      <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.textFaint }}>
         more_horiz
       </span>
     </div>
-    <div style={{ padding: "8px 0", flex: 1, overflow: "hidden" }}>
+    <div style={{ padding: "6px 0", flex: 1, overflow: "hidden" }}>
+      {/* Project root */}
       <div
         style={{
-          padding: "4px 16px",
+          paddingLeft: 10,
+          paddingRight: 8,
+          paddingTop: 3,
+          paddingBottom: 5,
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: 5,
         }}
       >
-        <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.textDim }}>
+        <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 12, color: C.textFaint }}>
           chevron_right
         </span>
-        <span
-          style={{
-            fontFamily: FONT.label,
-            fontSize: 11,
-            color: C.textDim,
-            textTransform: "uppercase",
-            letterSpacing: -0.5,
-          }}
-        >
-          REG-SYS-01 / PSMA-RLT-001
-        </span>
+        <span style={monoLabel(9, C.textDim)}>CAPS-IND-001 / SUPP-505B2</span>
       </div>
-      <div style={{ paddingLeft: 16 }}>
-        {EXPLORER_FOLDERS.map((folder) => (
-          <div key={folder.name}>
-            <div
-              style={{
-                padding: "2px 8px",
-                paddingLeft: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: folder.active ? C.mid : "transparent",
-                borderLeft: folder.active ? `1px solid rgba(84,220,188,0.2)` : "none",
-                color: folder.active ? "rgba(223,226,235,0.8)" : "rgba(223,226,235,0.4)",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "Material Symbols Outlined",
-                  fontSize: 14,
-                  transform: folder.open ? "rotate(90deg)" : "none",
-                }}
-              >
-                chevron_right
-              </span>
-              <span
-                style={{
-                  fontFamily: "Material Symbols Outlined",
-                  fontSize: 16,
-                  color: folder.open ? C.teal : "inherit",
-                }}
-              >
-                {folder.open ? "folder_open" : "folder"}
-              </span>
-              <span
-                style={{
-                  fontFamily: FONT.label,
-                  fontSize: 11,
-                  textTransform: "uppercase",
-                }}
-              >
-                {folder.name}
-              </span>
-            </div>
-            {folder.open &&
-              folder.files?.map((file) => (
-                <div
-                  key={file.name}
-                  style={{
-                    padding: "2px 8px",
-                    paddingLeft: 48,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    background: file.active ? "rgba(84,220,188,0.1)" : "transparent",
-                    borderLeft: file.active ? `2px solid ${C.teal}` : "2px solid transparent",
-                    color: file.active ? C.teal : "rgba(223,226,235,0.6)",
-                  }}
-                >
-                  <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14 }}>
-                    description
-                  </span>
-                  <span style={{ fontFamily: FONT.label, fontSize: 10 }}>{file.name}</span>
-                </div>
-              ))}
-          </div>
-        ))}
-      </div>
+      {FILE_TREE.map((item) => (
+        <TreeNode key={item.name} item={item} depth={1} />
+      ))}
     </div>
   </div>
 );
+
+// ─── Top nav bar ──────────────────────────────────────────────────────────────
 
 const TopNavBar: React.FC<{ phase: Phase }> = ({ phase }) => {
   const tabs =
     phase === "idle"
       ? []
       : phase === "analyzing"
-        ? ["Explorer", "Evidence", "Protocols", "Archive"]
-        : ["Explorer", "Search", "Regulatory AI"];
+        ? ["Explorer", "Evidence", "Protocols"]
+        : ["Explorer", "Rulings", "Pre-IND Prep"];
 
   return (
     <div
       style={{
-        height: 48,
-        background: C.mid,
+        height: 46,
+        background: C.bg,
+        borderBottom: `1px solid ${C.border}`,
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "space-between",
         padding: "0 16px",
-        borderBottom: `1px solid ${C.highest}`,
         flexShrink: 0,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <span
-          style={{
-            fontFamily: FONT.headline,
-            fontSize: 16,
-            fontWeight: 800,
-            color: C.teal,
-            textTransform: "uppercase",
-            letterSpacing: 2,
-          }}
-        >
-          Turtl.Bio
-        </span>
-        {tabs.length > 0 && (
-          <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
-            {tabs.map((tab, i) => (
-              <span
-                key={tab}
-                style={{
-                  fontFamily: FONT.headline,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  color: i === 0 ? C.teal : "rgba(223,226,235,0.6)",
-                  borderBottom: i === 0 ? `2px solid ${C.teal}` : "none",
-                  paddingBottom: i === 0 ? 2 : 0,
-                  letterSpacing: 0.5,
-                }}
-              >
-                {tab}
-              </span>
-            ))}
-          </nav>
-        )}
-        {phase === "idle" && (
-          <div style={{ display: "flex", gap: 12, marginLeft: 16 }}>
-            {["menu", "search", "terminal"].map((icon) => (
-              <span
-                key={icon}
-                style={{
-                  fontFamily: "Material Symbols Outlined",
-                  fontSize: 20,
-                  color: "rgba(223,226,235,0.6)",
-                  padding: 4,
-                }}
-              >
-                {icon}
-              </span>
-            ))}
-          </div>
-        )}
+      <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+          <span
+            style={{
+              fontFamily: FONT.headline,
+              fontSize: 15, fontWeight: 600, color: C.text, letterSpacing: -0.3,
+            }}
+          >
+            Turtl.Bio
+          </span>
+          <span style={monoLabel(9, C.textFaint)}>Alpha</span>
+        </div>
+        {tabs.map((tab, i) => (
+          <span
+            key={tab}
+            style={{
+              ...monoLabel(11, i === 0 ? C.text : C.textDim),
+              borderBottom: i === 0 ? `2px solid ${C.text}` : "none",
+              paddingBottom: i === 0 ? 3 : 0,
+              fontWeight: i === 0 ? 600 : 400,
+            }}
+          >
+            {tab}
+          </span>
+        ))}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         {phase !== "idle" && (
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              background: C.lowest,
-              padding: "6px 12px",
-              border: `1px solid rgba(60,74,69,0.2)`,
+              display: "flex", alignItems: "center",
+              background: C.surface, border: `1px solid ${C.border}`,
+              padding: "5px 12px", gap: 8,
             }}
           >
-            <span
-              style={{
-                fontFamily: "Material Symbols Outlined",
-                fontSize: 14,
-                color: "rgba(223,226,235,0.4)",
-                marginRight: 8,
-              }}
-            >
+            <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 13, color: C.textFaint }}>
               search
             </span>
-            <span style={{ fontFamily: FONT.label, fontSize: 12, color: "rgba(223,226,235,0.3)" }}>
-              Search knowledge base...
-            </span>
-            <span
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 10,
-                color: "rgba(223,226,235,0.2)",
-                marginLeft: 12,
-              }}
-            >
-              ⌘K
-            </span>
+            <span style={monoLabel(11, C.textFaint)}>Search knowledge base...</span>
+            <span style={{ ...monoLabel(10, C.borderMid), marginLeft: 8 }}>⌘K</span>
           </div>
         )}
         <div
           style={{
-            background: C.tealDark,
-            color: C.onTealDark,
-            padding: "6px 12px",
-            fontFamily: FONT.label,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
+            background: C.text, color: C.bg,
+            padding: "6px 14px",
+            fontFamily: FONT.label, fontSize: 11, fontWeight: 600,
+            letterSpacing: "0.1em", textTransform: "uppercase",
+            display: "flex", alignItems: "center", gap: 6,
           }}
         >
-          <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14 }}>
-            folder_open
-          </span>
-          OPEN FOLDER
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {["terminal", "settings", "help", "account_circle"].map((icon) => (
-            <span
-              key={icon}
-              style={{
-                fontFamily: "Material Symbols Outlined",
-                fontSize: 20,
-                color: "rgba(223,226,235,0.6)",
-              }}
-            >
-              {icon}
-            </span>
-          ))}
+          <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 13 }}>folder_open</span>
+          Open Folder
         </div>
       </div>
     </div>
   );
 };
 
-const IdleCenter: React.FC = () => (
-  <div
-    style={{
-      flex: 1,
-      display: "flex",
-      flexDirection: "column",
-      position: "relative",
-      overflow: "hidden",
-    }}
-  >
-    {/* Interpretation Zone header bar */}
-    <div
-      style={{
-        background: C.low,
-        padding: "8px 16px",
-        borderBottom: `1px solid rgba(60,74,69,0.1)`,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-      }}
-    >
-      <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.teal }}>
-        data_exploration
-      </span>
-      <span
-        style={{
-          fontFamily: FONT.label,
-          fontSize: 10,
-          fontWeight: 700,
-          letterSpacing: 3,
-          textTransform: "uppercase",
-          color: C.text,
-        }}
-      >
-        Interpretation Zone
-      </span>
-    </div>
-    {/* Center content */}
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        padding: 48,
-      }}
-    >
-      <div
-        style={{
-          width: 96,
-          height: 96,
-          borderRadius: "50%",
-          background: C.mid,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: `1px solid rgba(60,74,69,0.1)`,
-          marginBottom: 24,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "Material Symbols Outlined",
-            fontSize: 36,
-            color: C.outlineDim,
-          }}
-        >
-          find_in_page
-        </span>
-      </div>
-      <h3
-        style={{
-          fontFamily: FONT.headline,
-          fontSize: 20,
-          color: C.text,
-          margin: "0 0 8px 0",
-        }}
-      >
-        Workspace Idle
-      </h3>
-      <p
-        style={{
-          color: C.textDim,
-          maxWidth: 380,
-          fontSize: 13,
-          lineHeight: 1.6,
-          margin: 0,
-        }}
-      >
-        Submit a query to surface applicable guidance and precedent within the
-        PSMA-RLT framework.
-      </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 12,
-          marginTop: 32,
-          width: "100%",
-          maxWidth: 420,
-        }}
-      >
-        <div
-          style={{
-            background: C.low,
-            padding: 16,
-            textAlign: "left",
-            border: `1px solid rgba(60,74,69,0.05)`,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 9,
-              textTransform: "uppercase",
-              color: C.teal,
-              display: "block",
-              marginBottom: 4,
-            }}
-          >
-            Shortcut
-          </span>
-          <span style={{ fontSize: 12, color: C.textDim }}>Press ⌘ + Enter to submit</span>
-        </div>
-        <div
-          style={{
-            background: C.low,
-            padding: 16,
-            textAlign: "left",
-            border: `1px solid rgba(60,74,69,0.05)`,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 9,
-              textTransform: "uppercase",
-              color: C.teal,
-              display: "block",
-              marginBottom: 4,
-            }}
-          >
-            Mode
-          </span>
-          <span style={{ fontSize: 12, color: C.textDim }}>
-            Regulatory Interpretation v2.4
-          </span>
-        </div>
-      </div>
-      {/* Ghost watermark */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          pointerEvents: "none",
-          opacity: 0.02,
-        }}
-      >
-        <span style={{ fontSize: 280, fontWeight: 700, color: C.text }}>TURTL</span>
-      </div>
-    </div>
-  </div>
-);
+// ─── Tab bar (inside main panel) ──────────────────────────────────────────────
 
-const EvidenceCardUI: React.FC<{
-  card: (typeof EVIDENCE_CARDS)[number];
-  variant: "active" | "complete";
-  cardOpacity: number;
-}> = ({ card, variant, cardOpacity }) => {
-  if (variant === "complete") {
-    return (
-      <div
-        style={{
-          background: C.low,
-          borderTop: `2px solid ${C.tealDark}`,
-          padding: 20,
-          opacity: cardOpacity,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: 16,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 10,
-              textTransform: "uppercase",
-              letterSpacing: 2,
-              color: "rgba(223,226,235,0.4)",
-            }}
-          >
-            SOURCE: {card.source}
-          </span>
-          <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.tealDark }}>
-            verified
-          </span>
-        </div>
-        <p
-          style={{
-            color: C.textDim,
-            fontSize: 13,
-            lineHeight: 1.6,
-            fontStyle: "italic",
-            marginBottom: 16,
-            margin: "0 0 16px 0",
-          }}
-        >
-          {card.quote}
-        </p>
-        <div
-          style={{
-            background: "rgba(38,42,49,0.5)",
-            padding: 12,
-            borderLeft: `2px solid ${C.tealDark}`,
-          }}
-        >
-          <p style={{ color: C.teal, fontSize: 13, fontWeight: 500, margin: 0 }}>
-            <span
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 10,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                marginRight: 8,
-              }}
-            >
-              SUMMARY:
-            </span>
-            {card.summary}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+const TabBar: React.FC<{ phase: Phase; tabOpacity: number }> = ({ phase, tabOpacity }) => {
+  const hasAnalysisTab = phase !== "idle";
   return (
     <div
       style={{
-        background: C.low,
-        borderTop: `2px solid ${C.tealDark}`,
-        padding: 20,
-        opacity: cardOpacity,
+        height: 34,
+        background: C.surfaceAlt,
+        borderBottom: `1px solid ${C.border}`,
+        display: "flex",
+        alignItems: "stretch",
+        flexShrink: 0,
+        overflow: "hidden",
       }}
     >
+      {/* Tab 1: data sheet (always visible) */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: 16,
+          alignItems: "center",
+          gap: 6,
+          padding: "0 14px",
+          background: phase === "idle" ? C.bg : C.surface,
+          borderRight: `1px solid ${C.border}`,
+          borderBottom: phase === "idle" ? `2px solid ${C.accent}` : "none",
         }}
       >
+        <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 12, color: C.accent }}>
+          table_chart
+        </span>
+        <span style={{ fontFamily: FONT.label, fontSize: 10, color: phase === "idle" ? C.text : C.textDim }}>
+          TPP_CAPS-001_v2.xlsx
+        </span>
+        <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 11, color: C.textFaint, marginLeft: 4 }}>
+          close
+        </span>
+      </div>
+
+      {/* Tab 2: Regulatory Analysis (appears after submit) */}
+      {hasAnalysisTab && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "0 14px",
+            background: C.bg,
+            borderRight: `1px solid ${C.border}`,
+            borderBottom: `2px solid ${C.accent}`,
+            opacity: tabOpacity,
+          }}
+        >
+          {/* Live indicator dot */}
+          <div
+            style={{
+              width: 7, height: 7,
+              borderRadius: "50%",
+              background: C.accent,
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ fontFamily: FONT.label, fontSize: 10, color: C.text }}>
+            Regulatory Analysis
+          </span>
+          <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 11, color: C.textFaint, marginLeft: 4 }}>
+            close
+          </span>
+        </div>
+      )}
+
+      {/* Add tab button */}
+      <div
+        style={{
+          display: "flex", alignItems: "center", justifyContent: "center",
+          width: 32, color: C.textFaint,
+          fontFamily: "Material Symbols Outlined", fontSize: 16,
+        }}
+      >
+        add
+      </div>
+    </div>
+  );
+};
+
+// ─── TPP Document (shown when idle) ──────────────────────────────────────────
+
+const TPP_SECTIONS = [
+  {
+    n: "01", title: "Product Description", hasTargets: false,
+    rows: [
+      { attr: "Product name / code",   value: "CAPS-001 / Capsaicin Rectal Suppository 5% w/w" },
+      { attr: "Mechanism of action",   value: "TRPV1 agonist — selective desensitization of rectal sensory afferents; local action, minimal systemic absorption confirmed" },
+      { attr: "Drug class",            value: "Capsaicinoid · topical rectal formulation · existing NDA precedent: Qutenza (NDA 022395)" },
+      { attr: "Regulatory approach",   value: "505(b)(2) reliance on Qutenza safety data + novel route/indication-specific nonclinical package" },
+    ],
+  },
+  {
+    n: "02", title: "Proposed Indication & Population", hasTargets: false,
+    rows: [
+      { attr: "Disease area",           value: "Neurogenic Bowel Dysfunction (NBD) — Chronic Spinal Cord Injury (SCI)" },
+      { attr: "Intended indication",    value: "Management of bowel dysfunction in adult patients with chronic SCI (C1–T10 level), ≥12 months post-injury" },
+      { attr: "Target population",      value: "Adults 18–65 · chronic SCI ≥12 mo · NBDS ≥14 · failed ≥3 mo conservative bowel program" },
+      { attr: "Line of therapy",        value: "Second-line following inadequate response to standard bowel management program" },
+    ],
+  },
+  {
+    n: "03", title: "Clinical Efficacy", hasTargets: true,
+    rows: [
+      { attr: "Primary endpoint",        value: "Change from baseline NBDS at Week 12",                                              ideal: "≥5-point reduction · p<0.001",     min: "≥3-point reduction · p<0.05" },
+      { attr: "Key secondary endpoints", value: "GI-QoL Index · time-to-first-bowel-movement · colonic transit time (scintigraphy)", ideal: "",                                  min: "" },
+      { attr: "Effect size vs. SoC",     value: "35–50% NBDS improvement vs. 5–15% with standard bowel program",                    ideal: "",                                  min: "" },
+      { attr: "Onset / durability",      value: "Onset within 2–4 weeks · maintained through Week 24 (long-term cohort)",           ideal: "",                                  min: "" },
+    ],
+  },
+  {
+    n: "04", title: "Safety & Tolerability", hasTargets: true,
+    rows: [
+      { attr: "Key safety parameters",  value: "Rectal mucosal integrity (colonoscopy) · systemic TRPV1 effects · Cₘₐₓ < LOQ at all dose levels",       ideal: "No treatment-related mucosal changes · no systemic AEs",     min: "Grade 1–2 transient AEs · no SAEs at therapeutic dose",     highlight: false },
+      { attr: "Nonclinical on file",    value: "GLP 4-wk dog study CAPS-TOX-2024-01 v3 Final (21 CFR Part 58) · Qutenza NDA 022395 precedent",            ideal: "",                                                            min: "",                                                           highlight: false },
+      { attr: "Expected AEs / SAEs",   value: "Grade 1–2 transient rectal burning/discomfort (expected) · no systemic toxicity anticipated at therapeuticdose", ideal: "",                                                  min: "",                                                           highlight: false },
+      { attr: "Key nonclinical gap",   value: "Full histopathology organ scope + rodent GLP study requirement — pending FDA pre-IND concurrence",          ideal: "",                                                            min: "",                                                           highlight: true  },
+    ],
+  },
+  {
+    n: "05", title: "Clinical Pharmacology & PK", hasTargets: false,
+    rows: [
+      { attr: "Systemic exposure",     value: "Cₘₐₓ < 0.5 ng/mL at 5% w/w dose · rectal bioavailability < 5% of equivalent IV · target: Cₘₐₓ ≤ 0.2 ng/mL, AUC < LOQ" },
+      { attr: "Metabolic pathway",     value: "FAAH-mediated hydrolysis in gut epithelium (primary) · minor CYP3A4/CYP1A2 (< 15%) · no clinically relevant DDIs predicted" },
+      { attr: "PD target engagement",  value: "TRPV1 receptor density by colonoscopy biopsy · onset 2–4 wk confirms local desensitization · no systemic TRPV1 effects at therapeutic dose" },
+      { attr: "Dose selection",        value: "5% w/w modeled from Qutenza 8% patch PK · dose-response confirmed in ex vivo rectal motility assay · 2 g suppository unit weight" },
+    ],
+  },
+  {
+    n: "06", title: "Formulation & CMC", hasTargets: false,
+    rows: [
+      { attr: "Dosage form",           value: "2 g rectal suppository · cocoa butter / hydrogenated vegetable oil base · capsaicin 5% w/w (micronized, D90 < 20 µm)" },
+      { attr: "Manufacturing",         value: "Melt-pour under N₂ blanket · validated at 10 kg scale · GMP-certified CMO identified · Phase 1 clinical supply lot (50,000 units) planned Q3 2025" },
+      { attr: "Stability (ICH Q1A)",   value: "24-month real-time (25°C/60%RH) + 6-month accelerated (40°C/75%RH) · 3-month interim confirms potency and physical stability" },
+      { attr: "CMC IND readiness",     value: "Drug substance characterization complete · drug product batch records drafted · analytical method validation (HPLC-UV) in progress" },
+    ],
+  },
+  {
+    n: "07", title: "Regulatory Milestone Plan", hasTargets: false,
+    rows: [
+      { attr: "Pre-IND meeting (Type B)", value: "Target Q2 2025 — confirm nonclinical package scope, histopathology waiver, rodent GLP waiver / requirements; written meeting minutes required" },
+      { attr: "IND submission",           value: "Target Q4 2025 contingent on pre-IND concurrence and rodent GLP completion if required (6–9 month critical-path timeline)" },
+      { attr: "Phase 1/2a FIH",           value: "Open-label dose-escalation (3+3) · SCI patients with NBD (NBDS ≥ 14) · 3 sites · primary endpoint: NBDS change from baseline at Week 12" },
+      { attr: "Critical dependency",      value: "Rodent GLP study is sole critical-path item; CMC, clinical protocol, and CTA preparation can proceed in parallel pending pre-IND guidance" },
+    ],
+  },
+];
+
+const TPPDocument: React.FC = () => {
+  // pre-compute base row indices for stagger
+  const sectionBases = TPP_SECTIONS.map((_, si) => {
+    let base = 0;
+    for (let k = 0; k < si; k++) base += 1 + TPP_SECTIONS[k].rows.length;
+    return base;
+  });
+
+  return (
+    <div style={{ flex: 1, overflow: "hidden", background: C.bg, padding: "20px 24px" }}>
+      {/* Document header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div>
+            <h2 style={{ fontFamily: FONT.headline, fontSize: 17, fontWeight: 500, color: C.text, margin: "0 0 2px 0", letterSpacing: -0.3 }}>
+              CAPS-001 / Capsaicin Rectal Suppository 5% w/w
+            </h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={monoLabel(9, C.textFaint)}>Target Product Profile</span>
+              <span style={{ color: C.borderMid }}>·</span>
+              <span style={{ ...monoLabel(9, C.accent), background: C.accentBg, border: `1px solid ${C.accentBorder}`, padding: "1px 7px" }}>505(b)(2) NDA</span>
+              <span style={{ color: C.borderMid }}>·</span>
+              <span style={monoLabel(9, C.textFaint)}>Pre-IND Stage</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ ...monoLabel(9, C.amber), background: C.amberBg, border: `1px solid ${C.amberBorder}`, padding: "2px 9px" }}>
+            Nonclinical Gap: HIGH
+          </span>
+          <span style={monoLabel(9, C.textFaint)}>v2.1 · 2024-12-10</span>
+        </div>
+      </div>
+
+      {/* Table header */}
+      <div style={{ display: "grid", gridTemplateColumns: "170px 1fr 150px 150px", background: C.surfaceAlt, borderBottom: `2px solid ${C.borderStrong}`, border: `1px solid ${C.border}` }}>
+        {["Attribute", "Description / Value", "Target — Ideal", "Target — Min"].map((h, i) => (
+          <div key={h} style={{ padding: "5px 12px", borderRight: i < 3 ? `1px solid ${C.border}` : "none", ...monoLabel(9, C.textDim) }}>{h}</div>
+        ))}
+      </div>
+
+      {/* Sections */}
+      {TPP_SECTIONS.map((section, si) => {
+        const base = sectionBases[si];
+        return (
+          <React.Fragment key={section.n}>
+            {/* Section header row */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "170px 1fr 150px 150px",
+              background: C.surface,
+              borderLeft: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
+            }}>
+              <div style={{ gridColumn: "1 / -1", padding: "5px 12px" }}>
+                <span style={{ ...monoLabel(9, C.accent) }}>{section.n} · {section.title}</span>
+                {section.hasTargets && (
+                  <span style={{ ...monoLabel(8, C.textFaint), marginLeft: 10 }}>Ideal / Minimum targets shown</span>
+                )}
+              </div>
+            </div>
+            {/* Data rows */}
+            {section.rows.map((row, ri) => {
+              const hl = "highlight" in row && row.highlight;
+              return (
+              <div key={ri} style={{
+                display: "grid", gridTemplateColumns: "170px 1fr 150px 150px",
+                borderLeft: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
+                background: hl ? C.amberBg : C.bg,
+              }}>
+                <div style={{ padding: "6px 12px", borderRight: `1px solid ${C.border}`, background: C.surface, ...monoLabel(9, hl ? C.amber : C.textDim) }}>
+                  {row.attr}
+                </div>
+                <div style={{ padding: "6px 12px", borderRight: `1px solid ${C.border}`, fontFamily: FONT.body, fontSize: 11, color: hl ? C.amber : C.textSub, lineHeight: 1.45, fontWeight: hl ? 500 : 400 }}>
+                  {row.value}
+                </div>
+                <div style={{ padding: "6px 12px", borderRight: `1px solid ${C.border}`, fontFamily: FONT.body, fontSize: 11, color: C.accent, lineHeight: 1.45 }}>
+                  {"ideal" in row ? row.ideal : ""}
+                </div>
+                <div style={{ padding: "6px 12px", fontFamily: FONT.body, fontSize: 11, color: C.textDim, lineHeight: 1.45 }}>
+                  {"min" in row ? row.min : ""}
+                </div>
+              </div>
+              );
+            })}
+          </React.Fragment>
+        );
+      })}
+
+      {/* Footer */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 12, marginTop: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent }} />
+          <span style={monoLabel(9, C.accent)}>TPP current · CAPS-IND-001</span>
+        </div>
+        <span style={monoLabel(9, C.textFaint)}>Regulatory query pending · pre-IND submission Q2 2025</span>
+      </div>
+    </div>
+  );
+};
+
+// ─── Evidence card ─────────────────────────────────────────────────────────────
+
+const EvidenceCardUI: React.FC<{
+  card: (typeof EVIDENCE_CARDS)[number];
+  cardOpacity: number;
+}> = ({ card, cardOpacity }) => (
+  <div
+    style={{
+      background: C.bg,
+      border: `1px solid ${C.border}`,
+      borderTop: `2px solid ${C.accent}`,
+      padding: "16px 20px",
+      opacity: cardOpacity,
+    }}
+  >
+    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+      <div>
         <span
           style={{
-            fontFamily: FONT.label,
-            fontSize: 11,
-            color: "rgba(84,220,188,0.8)",
-            fontWeight: 700,
-            background: "rgba(84,220,188,0.05)",
+            ...monoLabel(9, C.accent),
+            background: C.accentBg,
+            border: `1px solid ${C.accentBorder}`,
             padding: "2px 8px",
-            border: `1px solid rgba(84,220,188,0.1)`,
+            display: "inline-block",
+            marginBottom: 3,
           }}
         >
           {card.source}
         </span>
-        <span
-          style={{
-            fontFamily: "Material Symbols Outlined",
-            fontSize: 18,
-            color: "rgba(223,226,235,0.2)",
-          }}
-        >
-          verified
-        </span>
+        <div style={monoLabel(9, C.textFaint)}>{card.ref}</div>
       </div>
-      <div
+      <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.borderMid }}>
+        verified
+      </span>
+    </div>
+    <p
+      style={{
+        fontFamily: FONT.body, fontSize: 12, lineHeight: 1.65,
+        fontStyle: "italic", color: C.textDim,
+        margin: "0 0 12px 0",
+        borderLeft: `2px solid ${C.border}`, paddingLeft: 12,
+      }}
+    >
+      {card.quote}
+    </p>
+    <div style={{ background: C.surface, padding: "9px 12px", borderLeft: `2px solid ${C.accent}` }}>
+      <span style={{ ...monoLabel(9, C.accent), display: "block", marginBottom: 4 }}>Turtl Analysis</span>
+      <p style={{ fontFamily: FONT.body, fontSize: 12, color: C.textSub, margin: 0, lineHeight: 1.6 }}>
+        {card.summary}
+      </p>
+    </div>
+  </div>
+);
+
+// ─── Ruling cards ──────────────────────────────────────────────────────────────
+
+interface RulingData {
+  label: string; question: string; verdict: string; verdictFontSize: number;
+  topBorder: string; verdictColor: string; verdictBg: string; verdictBorder: string;
+  reasoning: string; actions: string[];
+}
+
+const RULING_A: RulingData = {
+  label: "RULING A — Histopathology",
+  question: "Can we limit histopathology to rectum and colon?",
+  verdict: "NOT SUPPORTED BY CURRENT GUIDANCE",
+  verdictFontSize: 12,
+  topBorder: C.red, verdictColor: C.red, verdictBg: C.redBg, verdictBorder: C.redBorder,
+  reasoning:
+    "ICH M3(R2) Table 1 specifies a full organ histopathological examination for repeat-dose studies of ≥1 month duration supporting Phase 1 clinical trials. The 505(b)(2) pathway does not inherently exempt applicants from nonclinical study requirements; FDA written concurrence is required to deviate from standard guidance. A novel administration route and novel indication each constitute independent factors requiring full nonclinical review per applicable guidance.",
+  actions: [
+    "FDA written concurrence at pre-IND meeting is required prior to any limitation of organ sampling scope.",
+    "Applicability of 505(b)(2) to nonclinical study design modification requires explicit FDA confirmation at pre-IND stage.",
+  ],
+};
+
+const RULING_B: RulingData = {
+  label: "RULING B — Rodent study",
+  question: "Do we need a rodent GLP study on top of the dog study?",
+  verdict: "LIKELY REQUIRED PER 21 CFR 312.23(a)(8)",
+  verdictFontSize: 12,
+  topBorder: C.amber, verdictColor: C.amber, verdictBg: C.amberBg, verdictBorder: C.amberBorder,
+  reasoning:
+    "Standard nonclinical packages per ICH M3(R2) and 21 CFR 312.23(a)(8) require toxicology data from a minimum of two species — one rodent and one non-rodent — for novel indications. The completed 4-week GLP dog study satisfies the non-rodent requirement. The absence of a rodent GLP study represents an identified gap under current guidance, subject to review during the IND 30-day safety evaluation period.",
+  actions: [
+    "Whether a rodent GLP study may be waived requires written FDA concurrence obtained at the pre-IND meeting.",
+    "21 CFR 312.23(a)(8) establishes minimum pharmacology/toxicology data requirements; any deviation must be documented with FDA.",
+  ],
+};
+
+const RulingCard: React.FC<{ ruling: RulingData; opacity: number }> = ({ ruling, opacity }) => (
+  <div
+    style={{
+      flex: 1, background: C.bg,
+      border: `1px solid ${C.border}`,
+      borderTop: `3px solid ${ruling.topBorder}`,
+      padding: "18px 20px", opacity,
+    }}
+  >
+    <span style={{ ...monoLabel(9, C.textFaint), display: "block", marginBottom: 7 }}>
+      {ruling.label}
+    </span>
+    <p style={{ fontFamily: FONT.body, fontSize: 12, color: C.textDim, lineHeight: 1.5, margin: "0 0 12px 0" }}>
+      {ruling.question}
+    </p>
+    <div
+      style={{
+        display: "inline-flex", alignItems: "center",
+        background: ruling.verdictBg,
+        border: `1px solid ${ruling.verdictBorder}`,
+        padding: "4px 14px", marginBottom: 12,
+      }}
+    >
+      <span
         style={{
-          borderLeft: `1px solid rgba(60,74,69,0.3)`,
-          paddingLeft: 16,
-          paddingTop: 4,
-          paddingBottom: 4,
-          fontStyle: "italic",
-          color: "rgba(223,226,235,0.7)",
-          fontSize: 13,
-          lineHeight: 1.6,
-          marginBottom: 16,
+          fontFamily: FONT.label, fontSize: ruling.verdictFontSize, fontWeight: 700,
+          color: ruling.verdictColor, letterSpacing: "0.04em", lineHeight: 1.3,
         }}
       >
-        {card.quote}
-      </div>
-      <div
-        style={{
-          background: "rgba(10,14,20,0.5)",
-          padding: 12,
-          border: `1px solid rgba(60,74,69,0.1)`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 4,
-          }}
-        >
-          <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.teal }}>
-            insights
-          </span>
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 10,
-              fontWeight: 700,
-              color: C.teal,
-              textTransform: "uppercase",
-            }}
-          >
-            Console Summary
+        {ruling.verdict}
+      </span>
+    </div>
+    <p style={{ fontFamily: FONT.body, fontSize: 12, color: C.textDim, lineHeight: 1.7, margin: "0 0 12px 0" }}>
+      {ruling.reasoning}
+    </p>
+    <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+      <span style={{ ...monoLabel(9, C.accent), display: "block", marginBottom: 7 }}>
+        What to confirm:
+      </span>
+      {ruling.actions.map((action, i) => (
+        <div key={i} style={{ display: "flex", gap: 7, marginBottom: 5 }}>
+          <span style={{ color: C.accent, fontWeight: 600, flexShrink: 0, fontSize: 11 }}>→</span>
+          <span style={{ fontFamily: FONT.body, fontSize: 11, color: C.textSub, lineHeight: 1.6 }}>
+            {action}
           </span>
         </div>
-        <p style={{ color: C.teal, fontSize: 13, fontWeight: 500, margin: 0 }}>
-          {card.summary}
-        </p>
-      </div>
+      ))}
     </div>
-  );
-};
+  </div>
+);
+
+// ─── Pre-IND questions ────────────────────────────────────────────────────────
+
+const PRE_IND_QUESTIONS = [
+  "We have completed a 4-week GLP dog study via rectal administration. We request FDA concurrence that this, combined with existing published capsaicin safety data, is sufficient to waive the rodent GLP study requirement.",
+  "We request FDA concurrence that histopathology limited to rectum and colon is acceptable given the local delivery route and evidence of minimal systemic absorption. Please confirm acceptable organ sampling scope.",
+  "If a rodent GLP study is required, please advise on acceptable study duration (14-day vs. 28-day) and whether existing capsaicin rodent literature justifies a reduced study design.",
+];
+
+// ─── Interpretation zone (analysis tab content) ───────────────────────────────
 
 const InterpretationZone: React.FC<{
   phase: "analyzing" | "complete";
@@ -805,394 +895,338 @@ const InterpretationZone: React.FC<{
   fps: number;
 }> = ({ phase, visibleCards, frame, fps }) => {
   const isComplete = phase === "complete";
-  const cards = isComplete ? EVIDENCE_CARDS : EVIDENCE_CARDS.slice(0, visibleCards);
-  const submitFrame = 11 * fps;
+  const submitFrame = 12 * fps;
+  const completeFrame = 22 * fps;
+
+  const fi = (start: number, end: number) =>
+    interpolate(frame, [start, end], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+
+  const rulingAOp = fi(completeFrame, completeFrame + fps * 0.5);
+  const rulingBOp = fi(completeFrame + fps * 3, completeFrame + fps * 3.5);
+  const confirmOp = fi(completeFrame + fps * 5, completeFrame + fps * 5.5);
+  const preIndOp  = fi(completeFrame + fps * 7, completeFrame + fps * 7.5);
 
   return (
-    <div
-      style={{
-        flex: 1,
-        overflow: "hidden",
-        background: C.bg,
-        padding: 24,
-      }}
-    >
-      <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        {/* Header */}
-        <div
+    <div style={{ flex: 1, overflow: "hidden", background: C.bg, padding: "18px 22px" }}>
+      {/* Header */}
+      <div style={{ borderBottom: `1px solid ${C.border}`, paddingBottom: 13, marginBottom: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
+          <span style={monoLabel(10, C.accent)}>Regulatory Intelligence</span>
+          <span style={{ color: C.border }}>·</span>
+          <span style={monoLabel(10, C.textFaint)}>
+            {isComplete ? "Applicability Rulings" : "Nonclinical Evaluation"}
+          </span>
+        </div>
+        <h1
           style={{
-            borderBottom: `1px solid rgba(60,74,69,0.15)`,
-            paddingBottom: 24,
-            marginBottom: 32,
+            fontFamily: FONT.headline, fontSize: 20, fontWeight: 500,
+            color: C.text, margin: "0 0 4px 0", letterSpacing: -0.3,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <span
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: C.teal,
-                fontWeight: 700,
-              }}
-            >
-              Regulatory Intelligence
-            </span>
-            <span style={{ color: "rgba(223,226,235,0.2)" }}>/</span>
-            <span
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: "rgba(223,226,235,0.4)",
-              }}
-            >
-              Interpretation Zone
-            </span>
-          </div>
-          <h1
+          {isComplete ? "Applicability Rulings" : "Capsaicin Suppository IND — Nonclinical Safety"}
+        </h1>
+        <p style={{ fontFamily: FONT.body, fontSize: 12, color: C.textDim, margin: 0 }}>
+          {isComplete
+            ? "505(b)(2) · Rectal route · Novel SCI indication · Cross-ref: protocol_v3.pdf"
+            : "Cross-referencing protocol_v3.pdf against ICH M3(R2), 21 CFR 312.23, and 505(b)(2) guidance..."}
+        </p>
+      </div>
+
+      {/* Analyzing: framework + evidence cards */}
+      {!isComplete && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+          <div
             style={{
-              fontFamily: FONT.headline,
-              fontSize: 28,
-              fontWeight: 800,
-              color: C.text,
-              margin: "0 0 8px 0",
-              letterSpacing: -0.5,
+              background: C.surface, border: `1px solid ${C.border}`,
+              padding: "13px 16px",
+              opacity: fi(submitFrame, submitFrame + 15),
             }}
           >
-            {isComplete
-              ? "Regulatory Interpretation"
-              : "Nonclinical Study Requirements Evaluation"}
-          </h1>
-          <p style={{ color: "rgba(223,226,235,0.6)", fontSize: 13, margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
-            {isComplete
-              ? "Analysis of sex-specific toxicity requirements"
-              : "System-wide analysis of ICH and FDA guidance regarding sex-specific toxicological studies for targeted oncology radioligands."}
-          </p>
-        </div>
-        {/* Cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {cards.map((card, i) => {
-            const cardAppearFrame = submitFrame + i * 1.5 * fps;
-            const cardOpacity = interpolate(
-              frame,
-              [cardAppearFrame, cardAppearFrame + fps * 0.5],
-              [0, 1],
-              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-            );
-            return (
-              <EvidenceCardUI
-                key={card.id}
-                card={card}
-                variant={isComplete ? "complete" : "active"}
-                cardOpacity={cardOpacity}
-              />
-            );
-          })}
-          {phase === "analyzing" && visibleCards < EVIDENCE_CARDS.length && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "16px 0",
-                color: "rgba(223,226,235,0.4)",
-              }}
-            >
+            <span style={{ ...monoLabel(9, C.accent), display: "block", marginBottom: 9 }}>
+              Regulatory Framework Identified
+            </span>
+            {[
+              "505(b)(2) NDA pathway",
+              "ICH M3(R2) — Nonclinical Safety Studies for Human Clinical Trials",
+              "21 CFR 312.23(a)(8) — IND Pharmacology/Toxicology",
+              "FDA Guidance: Nonclinical Safety Evaluation of Pharmaceutical Excipients",
+            ].map((fw, i) => (
               <div
+                key={i}
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: C.teal,
-                  opacity: 0.7,
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: FONT.label,
-                  fontSize: 11,
-                  textTransform: "uppercase",
-                  letterSpacing: 2,
+                  display: "flex", alignItems: "center", gap: 7, marginBottom: 6,
+                  opacity: fi(submitFrame + i * fps * 0.75, submitFrame + i * fps * 0.75 + 14),
                 }}
               >
-                Analyzing regulatory sources...
+                <div
+                  style={{
+                    width: 15, height: 15,
+                    border: `1px solid ${C.accent}`, background: C.accentBg,
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}
+                >
+                  <span style={{ color: C.accent, fontSize: 10, fontWeight: 700 }}>✓</span>
+                </div>
+                <span style={{ fontFamily: FONT.body, fontSize: 12, color: C.textSub }}>{fw}</span>
+              </div>
+            ))}
+            <div
+              style={{
+                marginTop: 9, paddingTop: 9, borderTop: `1px solid ${C.border}`,
+                display: "flex", alignItems: "center", gap: 8,
+                opacity: fi(submitFrame + 4 * fps * 0.75, submitFrame + 4 * fps * 0.75 + 14),
+              }}
+            >
+              <span style={{ fontFamily: FONT.label, fontSize: 10, color: C.amber, fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.1em" }}>
+                ⚡ Grey Zone: HIGH
               </span>
+              <span style={{ fontFamily: FONT.body, fontSize: 11, color: C.textDim }}>
+                — 505(b)(2) waiver + route novelty + indication novelty
+              </span>
+            </div>
+          </div>
+
+          {EVIDENCE_CARDS.slice(0, visibleCards).map((card, i) => {
+            const s = submitFrame + i * 1.5 * fps;
+            return <EvidenceCardUI key={card.id} card={card} cardOpacity={fi(s, s + fps * 0.5)} />;
+          })}
+
+          {visibleCards < EVIDENCE_CARDS.length && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.accent, opacity: 0.6 }} />
+              <span style={monoLabel(10, C.textDim)}>Analyzing regulatory sources...</span>
             </div>
           )}
         </div>
-      </div>
+      )}
+
+      {/* Complete: rulings + what to confirm + pre-IND */}
+      {isComplete && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", gap: 12 }}>
+            <RulingCard ruling={RULING_A} opacity={rulingAOp} />
+            <RulingCard ruling={RULING_B} opacity={rulingBOp} />
+          </div>
+
+          {/* WHAT TO CONFIRM — third guidance note */}
+          <div style={{
+            opacity: confirmOp,
+            background: C.bg,
+            border: `1px solid ${C.amberBorder}`,
+            borderLeft: `3px solid ${C.amber}`,
+            padding: "14px 18px",
+          }}>
+            <span style={{ ...monoLabel(9, C.amber), display: "block", marginBottom: 10 }}>
+              What to confirm:
+            </span>
+            {[
+              "FDA written concurrence that histopathology limited to rectum and colon is acceptable for this study design, or confirmation that a full organ panel per ICH M3(R2) Table 1 is required.",
+              "FDA written statement that the completed 4-week GLP dog study satisfies the non-rodent requirement and whether a rodent GLP study is required per 21 CFR 312.23(a)(8) for this indication and route.",
+              "If rodent study is required: acceptable study duration (14-day vs. 28-day) and whether existing published capsaicin rodent toxicology data is sufficient to support a reduced study design.",
+            ].map((item, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, marginBottom: i < 2 ? 8 : 0 }}>
+                <span style={{ fontFamily: FONT.label, fontSize: 11, color: C.amber, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>
+                  {i + 1}.
+                </span>
+                <span style={{ fontFamily: FONT.body, fontSize: 11.5, color: C.textSub, lineHeight: 1.6 }}>
+                  {item}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ opacity: preIndOp }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={monoLabel(9, C.accent)}>Pre-IND Meeting Prep</span>
+              <span style={{ flex: 1, height: 1, background: C.border }} />
+              <span style={monoLabel(9, C.textFaint)}>copy-paste ready</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {PRE_IND_QUESTIONS.map((q, i) => (
+                <div
+                  key={i}
+                  style={{
+                    background: C.surface, border: `1px solid ${C.border}`,
+                    borderLeft: `3px solid ${C.accent}`,
+                    padding: "10px 14px", display: "flex", gap: 11,
+                  }}
+                >
+                  <span style={{ fontFamily: FONT.label, fontSize: 11, fontWeight: 700, color: C.accent, flexShrink: 0 }}>
+                    Q{i + 1}
+                  </span>
+                  <span style={{ fontFamily: FONT.body, fontSize: 12, color: C.textSub, lineHeight: 1.65 }}>
+                    {q}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const CopilotPanel: React.FC<{
-  phase: Phase;
-  typingProgress: number;
-}> = ({ phase, typingProgress }) => {
+// ─── Copilot panel ────────────────────────────────────────────────────────────
+
+const CopilotPanel: React.FC<{ phase: Phase; typingProgress: number }> = ({
+  phase, typingProgress,
+}) => {
   const isIdle = phase === "idle";
-
-  const indication = "Prostate Cancer (mCRPC)";
-  const modality = "Radioligand Therapy (PSMA-targeted)";
   const fullQuery =
-    "Our indication is male-only. Do we need tox studies in female animals?";
-
-  // Typing effect for query
+    "We've completed a 4-week GLP dog study (rectum, colon). Novel indication — bowel dysfunction in SCI patients. Do we need full histopathology on all organs? Do we need a rodent GLP study on top of the dog study?";
   const visibleQuery = isIdle
     ? fullQuery.slice(0, Math.floor(typingProgress * fullQuery.length))
     : fullQuery;
-
-  const showCursor = isIdle && typingProgress < 1;
+  const showCursor = isIdle && typingProgress > 0 && typingProgress < 1;
 
   return (
     <div
       style={{
-        width: 320,
-        background: C.low,
-        borderLeft: `1px solid rgba(49,53,60,0.3)`,
-        display: "flex",
-        flexDirection: "column",
-        flexShrink: 0,
+        width: 300, background: C.surface,
+        borderLeft: `1px solid ${C.border}`,
+        display: "flex", flexDirection: "column", flexShrink: 0,
       }}
     >
-      {/* Header */}
       <div
         style={{
-          height: 36,
-          padding: "0 16px",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          borderBottom: `1px solid rgba(49,53,60,0.2)`,
+          height: 36, padding: "0 14px",
+          display: "flex", alignItems: "center", gap: 7,
+          borderBottom: `1px solid ${C.border}`,
         }}
       >
-        <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.teal }}>
+        <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 13, color: C.accent }}>
           auto_awesome
         </span>
-        <span
-          style={{
-            fontFamily: FONT.label,
-            fontSize: 10,
-            fontWeight: 700,
-            letterSpacing: 2,
-            color: C.text,
-            textTransform: "uppercase",
-          }}
-        >
-          AI Copilot
-        </span>
+        <span style={monoLabel(10, C.textDim)}>AI Copilot</span>
       </div>
-      {/* Body */}
-      <div style={{ flex: 1, overflow: "hidden", padding: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {/* Drug Indication */}
+
+      <div style={{ flex: 1, overflow: "hidden", padding: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* Indication */}
           <div>
-            <label
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: "rgba(223,226,235,0.4)",
-                display: "block",
-                marginBottom: 6,
-              }}
-            >
+            <label style={{ ...monoLabel(9, C.textFaint), display: "block", marginBottom: 5 }}>
               Drug Indication
             </label>
             <div
               style={{
-                background: C.lowest,
-                border: `1px solid rgba(60,74,69,0.2)`,
-                padding: "8px 12px",
-                fontSize: 12,
-                color: isIdle ? C.text : "rgba(223,226,235,0.8)",
+                background: C.bg, border: `1px solid ${C.border}`,
+                padding: "7px 10px", fontFamily: FONT.body, fontSize: 12, color: C.textSub,
               }}
             >
-              {indication}
+              Bowel Dysfunction (Spinal Cord Injury)
             </div>
           </div>
           {/* Modality */}
           <div>
-            <label
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: "rgba(223,226,235,0.4)",
-                display: "block",
-                marginBottom: 6,
-              }}
-            >
-              Modality
+            <label style={{ ...monoLabel(9, C.textFaint), display: "block", marginBottom: 5 }}>
+              Modality / Pathway
             </label>
             <div
               style={{
-                background: C.lowest,
-                border: `1px solid rgba(60,74,69,0.2)`,
-                padding: "8px 12px",
-                fontSize: 12,
-                color: isIdle ? C.text : "rgba(223,226,235,0.8)",
+                background: C.bg, border: `1px solid ${C.border}`,
+                padding: "7px 10px", fontFamily: FONT.body, fontSize: 12, color: C.textSub,
               }}
             >
-              {modality}
+              Capsaicin Suppository, 505(b)(2)
             </div>
           </div>
           {/* Query */}
           <div>
-            <label
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 9,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: "rgba(223,226,235,0.4)",
-                display: "block",
-                marginBottom: 6,
-              }}
-            >
+            <label style={{ ...monoLabel(9, C.textFaint), display: "block", marginBottom: 5 }}>
               Query
             </label>
             <div
               style={{
-                background: C.lowest,
-                border: `1px solid rgba(60,74,69,0.2)`,
-                padding: "8px 12px",
-                fontSize: 12,
-                color: isIdle ? C.text : "rgba(223,226,235,0.8)",
-                minHeight: 72,
-                lineHeight: 1.5,
+                background: C.bg, border: `1px solid ${C.border}`,
+                padding: "8px 10px", fontFamily: FONT.body, fontSize: 11, color: C.textSub,
+                minHeight: 80, lineHeight: 1.6,
               }}
             >
-              {visibleQuery}
+              {visibleQuery || (
+                <span style={{ color: C.textFaint }}>Describe your regulatory situation...</span>
+              )}
               {showCursor && (
-                <span style={{ borderRight: `2px solid ${C.teal}`, marginLeft: 1 }}>
-                  &nbsp;
-                </span>
+                <span
+                  style={{
+                    display: "inline-block", width: 2, height: "0.9em",
+                    background: C.accent, marginLeft: 1, verticalAlign: "text-bottom",
+                  }}
+                />
               )}
             </div>
           </div>
-          {/* Submit Button */}
+          {/* Submit */}
           <div
             style={{
-              background: phase === "analyzing" ? "rgba(0,175,145,0.5)" : C.tealDark,
-              color: C.onTealDark,
-              padding: "10px 0",
-              textAlign: "center",
-              fontFamily: FONT.label,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 2,
-              textTransform: "uppercase",
+              background: phase === "analyzing" ? "rgba(15,143,119,0.55)" : C.text,
+              color: C.bg, padding: "9px 0", textAlign: "center",
+              ...monoLabel(10, C.bg), fontWeight: 600,
             }}
           >
             SUBMIT QUERY
           </div>
         </div>
 
-        {/* Info box (idle only) */}
+        {/* Idle info */}
         {isIdle && (
           <div
             style={{
-              marginTop: 24,
-              background: "rgba(84,220,188,0.05)",
-              border: `1px solid rgba(84,220,188,0.2)`,
-              padding: 12,
-              display: "flex",
-              gap: 8,
+              marginTop: 16, background: C.accentBg,
+              border: `1px solid ${C.accentBorder}`,
+              padding: "10px 12px", display: "flex", gap: 8,
             }}
           >
-            <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 16, color: C.teal }}>
-              info
-            </span>
-            <p
-              style={{
-                fontSize: 11,
-                color: C.teal,
-                lineHeight: 1.4,
-                margin: 0,
-              }}
-            >
-              Copilot will cross-reference ICH S6(R1) and S9 guidelines against
-              your current file selection.
+            <span style={{ fontFamily: "Material Symbols Outlined", fontSize: 14, color: C.accent }}>info</span>
+            <p style={{ fontFamily: FONT.body, fontSize: 11, color: C.accentStrong, lineHeight: 1.45, margin: 0 }}>
+              Copilot will cross-reference protocol_v3.pdf against ICH M3(R2), 21 CFR 312.23(a)(8), and 505(b)(2) guidance.
             </p>
           </div>
         )}
 
-        {/* Precedent Cases (analyzing/complete) */}
+        {/* Precedent cases */}
         {phase !== "idle" && (
-          <div style={{ marginTop: 24 }}>
-            <h4
+          <div style={{ marginTop: 16 }}>
+            <div
               style={{
-                fontFamily: FONT.label,
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: 2,
-                color: C.textDim,
-                fontWeight: 700,
-                borderBottom: `1px solid rgba(60,74,69,0.1)`,
-                paddingBottom: 8,
-                marginBottom: 16,
-                marginTop: 0,
+                ...monoLabel(9, C.textDim),
+                borderBottom: `1px solid ${C.border}`, paddingBottom: 7, marginBottom: 11,
               }}
             >
               Precedent Cases
-            </h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
               {PRECEDENT_CASES.map((c) => (
                 <div
                   key={c.id}
-                  style={{
-                    background: C.mid,
-                    padding: 12,
-                    border: `1px solid rgba(60,74,69,0.1)`,
-                  }}
+                  style={{ background: C.bg, border: `1px solid ${C.border}`, padding: "10px 12px" }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ fontFamily: FONT.body, fontSize: 12, fontWeight: 600, color: C.text }}>
                       {c.name}
                     </span>
                     <span
                       style={{
-                        fontFamily: FONT.label,
-                        fontSize: 8,
-                        padding: "2px 6px",
-                        background: "rgba(84,220,188,0.1)",
-                        color: C.teal,
-                        border: `1px solid rgba(84,220,188,0.2)`,
-                        textTransform: "uppercase",
+                        ...monoLabel(8, C.accent),
+                        background: C.accentBg, border: `1px solid ${C.accentBorder}`,
+                        padding: "1px 5px",
                       }}
                     >
                       {c.statusLabel}
                     </span>
                   </div>
-                  <div style={{ fontSize: 10, color: "rgba(223,226,235,0.6)", marginBottom: 4 }}>
-                    {c.company} · {c.indication}
-                  </div>
-                  <div style={{ fontSize: 10, color: C.teal, fontWeight: 500, marginBottom: 8 }}>
+                  <div style={monoLabel(9, C.textFaint)}>{c.company} · {c.indication}</div>
+                  <div style={{ fontFamily: FONT.body, fontSize: 10, color: C.accent, fontWeight: 500, margin: "4px 0 6px" }}>
                     {c.summary}
                   </div>
-                  <div
+                  <p
                     style={{
-                      paddingTop: 8,
-                      borderTop: `1px solid rgba(60,74,69,0.2)`,
+                      fontFamily: FONT.body, fontSize: 10, color: C.textDim, lineHeight: 1.5, margin: 0,
+                      paddingTop: 6, borderTop: `1px solid ${C.border}`, fontStyle: "italic",
                     }}
                   >
-                    <p style={{ fontSize: 10, color: "rgba(223,226,235,0.8)", lineHeight: 1.5, margin: 0 }}>
-                      <span style={{ fontWeight: 700, color: C.text }}>FDA Response:</span>{" "}
-                      {c.fdaResponse}
-                    </p>
-                  </div>
+                    {c.fdaResponse}
+                  </p>
                 </div>
               ))}
             </div>
@@ -1203,350 +1237,189 @@ const CopilotPanel: React.FC<{
   );
 };
 
-const StatusBarUI: React.FC<{ phase: Phase }> = ({ phase }) => {
-  if (phase === "idle") {
-    return (
-      <div
-        style={{
-          height: 28,
-          background: C.lowest,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0 12px",
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: C.highest,
-              }}
-            />
-            <span
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 11,
-                fontWeight: 500,
-                color: "rgba(223,226,235,0.5)",
-                textTransform: "uppercase",
-                letterSpacing: 2,
-              }}
-            >
-              No active query
-            </span>
-          </div>
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 11,
-              color: "rgba(223,226,235,0.5)",
-            }}
-          >
-            v2.4.0-stable
-          </span>
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 11,
-              color: "rgba(223,226,235,0.5)",
-            }}
-          >
-            UTF-8
-          </span>
-        </div>
-        <span
-          style={{
-            fontFamily: FONT.label,
-            fontSize: 11,
-            fontWeight: 500,
-            color: C.teal,
-            textTransform: "uppercase",
-            letterSpacing: 2,
-          }}
-        >
-          System Status: Ready
-        </span>
-      </div>
-    );
-  }
+// ─── Status bar ───────────────────────────────────────────────────────────────
 
-  return (
-    <div
-      style={{
-        height: 28,
-        background: C.lowest,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 12px",
-        flexShrink: 0,
-        borderTop: `1px solid rgba(49,53,60,0.4)`,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 10,
-              textTransform: "uppercase",
-              letterSpacing: -0.5,
-              color: "rgba(223,226,235,0.4)",
-            }}
-          >
-            FDA REFERENCE SOURCE
-          </span>
-          <span style={{ color: C.teal, fontWeight: 700, fontSize: 14 }}>|</span>
-          <span style={{ fontFamily: FONT.label, fontSize: 10, color: C.teal }}>
-            ICH S6(R1) · Male-Specific Indication Studies
-          </span>
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-            background: "rgba(84,220,188,0.1)",
-            padding: "2px 6px",
-          }}
-        >
+const StatusBarUI: React.FC<{ phase: Phase }> = ({ phase }) => (
+  <div
+    style={{
+      height: 26, background: C.surfaceAlt, borderTop: `1px solid ${C.border}`,
+      display: "flex", justifyContent: "space-between", alignItems: "center",
+      padding: "0 12px", flexShrink: 0,
+    }}
+  >
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      {phase === "idle" ? (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.borderMid }} />
+            <span style={monoLabel(10, C.textDim)}>No active query</span>
+          </div>
+          <span style={monoLabel(10, C.textFaint)}>v2.4.0-stable</span>
+        </>
+      ) : (
+        <>
+          <span style={monoLabel(10, C.textFaint)}>FDA Reference Source</span>
+          <span style={{ color: C.accent, fontWeight: 700, fontSize: 14 }}>|</span>
+          <span style={monoLabel(10, C.accent)}>ICH M3(R2) · 21 CFR 312.23 · 505(b)(2)</span>
           <div
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: C.teal,
-            }}
-          />
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 8,
-              fontWeight: 700,
-              color: C.teal,
-              textTransform: "uppercase",
+              display: "flex", alignItems: "center", gap: 4,
+              background: C.accentBg, padding: "1px 6px",
             }}
           >
-            VERIFIED
-          </span>
-        </div>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 10,
-              textTransform: "uppercase",
-              color: "rgba(223,226,235,0.4)",
-            }}
-          >
-            LOGIC_PATH:
-          </span>
-          <span
-            style={{
-              fontFamily: FONT.label,
-              fontSize: 10,
-              color: "rgba(223,226,235,0.7)",
-            }}
-          >
-            Male-only tox studies accepted for male-specific indications.
-          </span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontFamily: FONT.label, fontSize: 10, color: "rgba(223,226,235,0.4)" }}>
-            UTF-8
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span
-              style={{
-                fontFamily: FONT.label,
-                fontSize: 10,
-                textTransform: "uppercase",
-                color: "rgba(223,226,235,0.4)",
-              }}
-            >
-              STABILITY:
-            </span>
-            <span style={{ fontFamily: FONT.label, fontSize: 10, color: C.teal, fontWeight: 700 }}>
-              0.9942
-            </span>
+            <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.accent }} />
+            <span style={monoLabel(8, C.accent)}>Verified</span>
           </div>
-          <span style={{ fontFamily: FONT.label, fontSize: 10, color: "rgba(223,226,235,0.4)" }}>
-            v2.4.0-STABLE
-          </span>
-        </div>
-      </div>
+        </>
+      )}
     </div>
-  );
-};
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      {phase !== "idle" && (
+        <span style={{ ...monoLabel(10, C.amber), fontWeight: 600 }}>
+          Grey Zone: HIGH — Written FDA waiver required
+        </span>
+      )}
+      <span style={monoLabel(10, C.textFaint)}>v2.4.0-stable</span>
+    </div>
+  </div>
+);
 
-// ─── Main Workspace Scene ───
+// ─── Main workspace scene ─────────────────────────────────────────────────────
 
 export const WorkspaceScene: React.FC = () => {
   useMaterialSymbols();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+
   const phase = getPhase(frame, fps);
   const visibleCards = getVisibleCards(frame, fps);
 
-  // Camera system
-  // We compute a focal point (fx, fy) in workspace coords and a scale.
-  // Transform: translate so focal point is at viewport center, then scale around it.
-  // tx = 960 - fx, ty = 540 - fy (at scale 1, workspace already fills viewport)
-  // At scale S with transformOrigin at (fx, fy): the point stays put, everything scales around it
-  // But since transformOrigin changes per-shot, we use a different approach:
-  // transform: translate(tx, ty) scale(S) where tx = (1-S)*fx + (960-fx), ty = (1-S)*fy + (540-fy)
-  // Simplified: tx = 960 - fx*S + (fx - 960)*(1-1) ... let's just use the correct formula:
-  // To show point (fx,fy) at viewport center (960,540) at scale S with transformOrigin '0 0':
-  // After scale: point is at (fx*S, fy*S). We need translate to move it to (960,540).
-  // So: tx = 960 - fx*S, ty = 540 - fy*S
-  // At scale=1, default view: fx=960, fy=540 → tx=0, ty=0 ✓
+  // Tab appears at submit with a quick fade-in
+  const tabOpacity = interpolate(frame, [12 * fps, 12 * fps + 18], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
-  // Focal points for each shot (workspace coordinates)
-  const COPILOT_FOCUS = { x: 1700, y: 300 };
-  const DEFAULT_FOCUS = { x: 960, y: 540 };
-  // Bottom bar: status bar is at y=1052..1080, center ≈ 1066
-  // But we want to see the FULL status bar + some context above it
-  // At scale 2.5, viewport shows 1920/2.5 = 768px wide, 1080/2.5 = 432px tall
-  // Focus on the lower portion: y should be ~1080 - 432/2 = ~864 to see bottom
-  const BOTTOM_BAR_FOCUS = { x: 960, y: 880 };
-  const BOTTOM_BAR_SCALE = 2.5;
+  // ── Camera focal points ───────────────────────────────────────────────────
+  // The workspace is 1920×1080. Copilot is at right (x≈1630–1920).
+  // Main panel: x≈296–1620 (after activity bar 48 + explorer 240 = 288, copilot 300 wide).
+  // File tree: x≈0–288 (activity 48 + explorer 240).
+  // Tab bar is at y≈46 (nav) + 34 (tab bar) = 80px from top.
+  const DEFAULT_FOCUS  = { x: 960,  y: 540 };
+  const COPILOT_FOCUS  = { x: 1680, y: 280 }; // zoom into copilot panel
+  const RULING_A_FOCUS = { x: 640,  y: 420 }; // left ruling card
+  const RULING_B_FOCUS = { x: 1280, y: 420 }; // right ruling card
+  const FILETREE_FOCUS = { x: 250,  y: 320 }; // file tree with nested v1/v2/v3
+  const RULING_SCALE   = 1.4;
+  const FILETREE_SCALE = 2.0;
 
-  const lerpFocus = (
-    f: number,
-    startFrame: number,
-    endFrame: number,
-    from: { x: number; y: number },
-    to: { x: number; y: number }
-  ) => {
-    const t = interpolate(f, [startFrame, endFrame], [0, 1], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp",
-      easing: Easing.inOut(Easing.quad),
+  const ease = Easing.inOut(Easing.quad);
+  function lerp(f: number, s: number, e: number, from: number, to: number) {
+    return interpolate(f, [s, e], [from, to], {
+      extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease,
+    });
+  }
+  function lerpPt(f: number, s: number, e: number, from: {x:number;y:number}, to: {x:number;y:number}) {
+    const t = interpolate(f, [s, e], [0, 1], {
+      extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease,
     });
     return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
-  };
+  }
 
   const { scale, focus } = (() => {
-    // Shot 2: Full workspace idle (0-3s)
-    if (frame < 3 * fps) {
-      return { scale: 1, focus: DEFAULT_FOCUS };
-    }
-    // Zoom to copilot (3s-5s)
-    if (frame < 5 * fps) {
-      const s = interpolate(frame, [3 * fps, 5 * fps], [1, 2.2], {
-        extrapolateRight: "clamp",
-        easing: Easing.inOut(Easing.quad),
-      });
-      const f = lerpFocus(frame, 3 * fps, 5 * fps, DEFAULT_FOCUS, COPILOT_FOCUS);
-      return { scale: s, focus: f };
-    }
-    // Hold on copilot (5s-10s)
-    if (frame < 10 * fps) {
-      return { scale: 2.2, focus: COPILOT_FOCUS };
-    }
-    // Pull back (10s-12s)
-    if (frame < 12 * fps) {
-      const s = interpolate(frame, [10 * fps, 12 * fps], [2.2, 1], {
-        extrapolateRight: "clamp",
-        easing: Easing.inOut(Easing.quad),
-      });
-      const f = lerpFocus(frame, 10 * fps, 12 * fps, COPILOT_FOCUS, DEFAULT_FOCUS);
-      return { scale: s, focus: f };
-    }
-    // Full view for evidence cards + money shot (12s-27s)
-    if (frame < 27 * fps) {
-      return { scale: 1, focus: DEFAULT_FOCUS };
-    }
-    // Zoom to bottom bar (27s-29s)
-    if (frame < 29 * fps) {
-      const s = interpolate(frame, [27 * fps, 29 * fps], [1, BOTTOM_BAR_SCALE], {
-        extrapolateRight: "clamp",
-        easing: Easing.inOut(Easing.quad),
-      });
-      const f = lerpFocus(frame, 27 * fps, 29 * fps, DEFAULT_FOCUS, BOTTOM_BAR_FOCUS);
-      return { scale: s, focus: f };
-    }
-    // Hold on bottom bar (29s-39s)
-    if (frame < 39 * fps) {
-      return { scale: BOTTOM_BAR_SCALE, focus: BOTTOM_BAR_FOCUS };
-    }
-    // Pull back (39s-43s)
-    if (frame < 43 * fps) {
-      const s = interpolate(frame, [39 * fps, 43 * fps], [BOTTOM_BAR_SCALE, 1], {
-        extrapolateRight: "clamp",
-        easing: Easing.inOut(Easing.quad),
-      });
-      const f = lerpFocus(frame, 39 * fps, 43 * fps, BOTTOM_BAR_FOCUS, DEFAULT_FOCUS);
-      return { scale: s, focus: f };
-    }
-    // Final hold
+    // 0–2s: start zoomed on file tree (TPP file visible, "just clicked")
+    if (frame < 2 * fps) return { scale: FILETREE_SCALE, focus: FILETREE_FOCUS };
+    // 2–3.5s: pull back to full view — TPP document "opens" in main panel
+    if (frame < 3.5 * fps) return {
+      scale: lerp(frame, 2*fps, 3.5*fps, FILETREE_SCALE, 1),
+      focus: lerpPt(frame, 2*fps, 3.5*fps, FILETREE_FOCUS, DEFAULT_FOCUS),
+    };
+    // 3.5–7s: hold full view — TPP readable (3.5s dwell)
+    if (frame < 7 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
+    // 7–9s: zoom to AI copilot
+    if (frame < 9 * fps) return {
+      scale: lerp(frame, 7*fps, 9*fps, 1, 2.2),
+      focus: lerpPt(frame, 7*fps, 9*fps, DEFAULT_FOCUS, COPILOT_FOCUS),
+    };
+    // 9–12s: hold on copilot (typing 9–11.7s, submit at 12s)
+    if (frame < 12 * fps) return { scale: 2.2, focus: COPILOT_FOCUS };
+    // 12–14s: pull back to reveal new tab opening
+    if (frame < 14 * fps) return {
+      scale: lerp(frame, 12*fps, 14*fps, 2.2, 1),
+      focus: lerpPt(frame, 12*fps, 14*fps, COPILOT_FOCUS, DEFAULT_FOCUS),
+    };
+    // 14–26s: full view — analysis builds (complete at 22s, both rulings visible by 25s)
+    if (frame < 26 * fps) return { scale: 1, focus: DEFAULT_FOCUS };
+    // 26–27.5s: zoom onto Ruling A
+    if (frame < 27.5 * fps) return {
+      scale: lerp(frame, 26*fps, 27.5*fps, 1, RULING_SCALE),
+      focus: lerpPt(frame, 26*fps, 27.5*fps, DEFAULT_FOCUS, RULING_A_FOCUS),
+    };
+    // 27.5–30s: hold Ruling A
+    if (frame < 30 * fps) return { scale: RULING_SCALE, focus: RULING_A_FOCUS };
+    // 30–31.5s: pull back
+    if (frame < 31.5 * fps) return {
+      scale: lerp(frame, 30*fps, 31.5*fps, RULING_SCALE, 1),
+      focus: lerpPt(frame, 30*fps, 31.5*fps, RULING_A_FOCUS, DEFAULT_FOCUS),
+    };
+    // 31.5–33s: zoom onto Ruling B
+    if (frame < 33 * fps) return {
+      scale: lerp(frame, 31.5*fps, 33*fps, 1, RULING_SCALE),
+      focus: lerpPt(frame, 31.5*fps, 33*fps, DEFAULT_FOCUS, RULING_B_FOCUS),
+    };
+    // 33–35.5s: hold Ruling B
+    if (frame < 35.5 * fps) return { scale: RULING_SCALE, focus: RULING_B_FOCUS };
+    // 35.5–37s: pull back
+    if (frame < 37 * fps) return {
+      scale: lerp(frame, 35.5*fps, 37*fps, RULING_SCALE, 1),
+      focus: lerpPt(frame, 35.5*fps, 37*fps, RULING_B_FOCUS, DEFAULT_FOCUS),
+    };
+    // 37s+: full view — all outputs visible, scroll reveals lower content
     return { scale: 1, focus: DEFAULT_FOCUS };
   })();
 
-  // Compute translate: put focus point at viewport center
   const tx = 960 - focus.x * scale;
   const ty = 540 - focus.y * scale;
 
-  // Typing progress for copilot query (during frames 150-300, i.e. 5s-10s)
-  const typingProgress = interpolate(frame, [5 * fps, 9 * fps], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+  // Typing runs while zoomed into copilot (7s), finishes just before submit (9s)
+  const typingProgress = interpolate(frame, [9 * fps, 11.7 * fps], [0, 1], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-
-  // Fade to black at the end (last ~2s)
-  const fadeToBlack = interpolate(frame, [49 * fps, 51 * fps], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+  const fadeToBlack = interpolate(frame, [44 * fps, 46.5 * fps], [0, 1], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
   });
-
-  // Scroll the evidence cards area during Shot 4
-  const scrollY = interpolate(frame, [17 * fps, 22 * fps], [0, -280], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
+  // Scroll reveals WHAT TO CONFIRM + pre-IND questions after rulings zooms finish
+  const scrollY = interpolate(frame, [38 * fps, 44 * fps], [0, -420], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.quad),
   });
 
   return (
     <AbsoluteFill style={{ background: C.bg, fontFamily: FONT.body }}>
-      {/* The full workspace, transformed by camera */}
       <div
         style={{
-          width: 1920,
-          height: 1080,
+          width: 1920, height: 1080,
           transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
           transformOrigin: "0 0",
-          display: "flex",
-          flexDirection: "column",
+          display: "flex", flexDirection: "column",
         }}
       >
         <TopNavBar phase={phase} />
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            overflow: "hidden",
-          }}
-        >
+        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <ActivityBar />
           <ExplorerPanel />
-          {/* Center */}
+
+          {/* Main content: tab bar + panel content */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <TabBar phase={phase} tabOpacity={tabOpacity} />
             {phase === "idle" ? (
-              <IdleCenter />
+              <TPPDocument />
             ) : (
               <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
                 <div
                   style={{
                     transform: `translateY(${scrollY}px)`,
-                    position: "absolute",
-                    inset: 0,
+                    position: "absolute", inset: 0,
                   }}
                 >
                   <InterpretationZone
@@ -1559,19 +1432,14 @@ export const WorkspaceScene: React.FC = () => {
               </div>
             )}
           </div>
+
           <CopilotPanel phase={phase} typingProgress={typingProgress} />
         </div>
         <StatusBarUI phase={phase} />
       </div>
 
-      {/* Fade to black overlay */}
       {fadeToBlack > 0 && (
-        <AbsoluteFill
-          style={{
-            background: "black",
-            opacity: fadeToBlack,
-          }}
-        />
+        <AbsoluteFill style={{ background: "black", opacity: fadeToBlack }} />
       )}
     </AbsoluteFill>
   );

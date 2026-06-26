@@ -1,20 +1,32 @@
+// Light editorial palette — matches the Turtl.Bio landing page
 export const C = {
-  bg: "#10141a",
-  lowest: "#0a0e14",
-  low: "#181c22",
-  mid: "#1c2026",
-  high: "#262a31",
-  highest: "#31353c",
-  bright: "#353940",
-  teal: "#54dcbc",
-  tealDark: "#00af91",
-  text: "#dfe2eb",
-  textDim: "#bbcac3",
-  outline: "#86948e",
-  outlineDim: "#3c4a45",
-  onTeal: "#00382d",
-  onTealDark: "#003a2f",
-  error: "#ffb4ab",
-  secondary: "#a0d0c1",
-  secondaryCtr: "#204f43",
+  // Backgrounds
+  bg:          "#ffffff",
+  surface:     "#fafafa",   // sidebars, secondary panels
+  surfaceAlt:  "#f4f4f5",   // status bar, tertiary surfaces
+
+  // Borders
+  border:      "#e5e7eb",   // zinc-200 — default
+  borderMid:   "#d1d5db",   // zinc-300
+  borderStrong:"#0b0e13",
+
+  // Text
+  text:        "#0b0e13",   // near-black (ink)
+  textSub:     "#374151",   // zinc-700
+  textDim:     "#6b7280",   // zinc-500
+  textFaint:   "#9ca3af",   // zinc-400
+
+  // Accent — landing page green
+  accent:       "#0f8f77",
+  accentBg:     "rgba(15,143,119,0.06)",
+  accentBorder: "rgba(15,143,119,0.22)",
+  accentStrong: "#065f4a",
+
+  // Ruling verdicts — crisp, editorial (not neon)
+  red:         "#dc2626",
+  redBg:       "rgba(220,38,38,0.05)",
+  redBorder:   "rgba(220,38,38,0.18)",
+  amber:       "#b45309",   // amber-700, readable on white
+  amberBg:     "rgba(180,83,9,0.05)",
+  amberBorder: "rgba(180,83,9,0.18)",
 } as const;

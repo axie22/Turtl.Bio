@@ -86,47 +86,59 @@ function TopNavBar({
   phase,
   activeTab,
   setActiveTab,
+  onNavigate,
 }: {
   phase: WorkspacePhase;
   activeTab: string;
   setActiveTab: (t: string) => void;
+  onNavigate?: (view: string) => void;
 }) {
-  const tabs = getNavTabs(phase);
+  const phaseTabs = getNavTabs(phase);
+
+  const globalTabs = [
+    { id: "explorer", label: "Explorer" },
+    { id: "path-map", label: "Path Map" },
+    { id: "regulatory-ai", label: "Regulatory AI" },
+  ];
 
   return (
     <header className="bg-ws-mid text-ws-teal font-headline font-bold text-sm tracking-tight uppercase border-b border-ws-highest flex justify-between items-center px-4 w-full h-12 z-50 shrink-0">
-      <div className="flex items-center gap-6">
-        <span className="text-lg font-black text-ws-teal font-headline uppercase tracking-wider">
+      <div className="flex items-center gap-1">
+        <span className="text-lg font-black text-ws-teal font-headline uppercase tracking-wider mr-4">
           Turtl.Bio
         </span>
-        {tabs.length > 0 && (
-          <nav className="hidden md:flex gap-6 items-center">
-            {tabs.map((tab) => (
+        {/* Global view tabs */}
+        <nav className="hidden md:flex items-center gap-1">
+          {globalTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => onNavigate?.(tab.id)}
+              className={`px-3 py-1.5 font-label text-[11px] font-medium rounded-sm transition-colors ${
+                tab.id === "explorer"
+                  ? "text-ws-teal bg-ws-teal/10"
+                  : "text-ws-text/50 hover:text-ws-text/80 hover:bg-ws-highest/40"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+        {/* Phase-specific secondary tabs */}
+        {phaseTabs.length > 0 && (
+          <nav className="hidden md:flex gap-4 items-center ml-4 pl-4 border-l border-ws-highest/30">
+            {phaseTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`transition-colors duration-150 ${
+                className={`transition-colors duration-150 font-label text-[11px] ${
                   activeTab === tab.id
                     ? "text-ws-teal border-b-2 border-ws-teal pb-1"
-                    : "text-ws-text/60 hover:bg-ws-highest hover:text-ws-text"
+                    : "text-ws-text/50 hover:text-ws-text/80"
                 }`}
               >
                 {tab.label}
               </button>
             ))}
-          </nav>
-        )}
-        {phase === "idle" && (
-          <nav className="hidden md:flex items-center gap-4 ml-4">
-            <button className="flex items-center gap-2 p-1.5 hover:bg-ws-highest transition-colors text-ws-text/60">
-              <span className="material-symbols-outlined">menu</span>
-            </button>
-            <button className="flex items-center gap-2 p-1.5 hover:bg-ws-highest transition-colors text-ws-text/60">
-              <span className="material-symbols-outlined">search</span>
-            </button>
-            <button className="flex items-center gap-2 p-1.5 hover:bg-ws-highest transition-colors text-ws-text/60">
-              <span className="material-symbols-outlined">terminal</span>
-            </button>
           </nav>
         )}
       </div>
@@ -280,7 +292,12 @@ function InterpretationZone({
 
 /* ─── Main Layout ─── */
 
-export function WorkspaceLayout() {
+interface WorkspaceLayoutProps {
+  activeView?: string;
+  onNavigate?: (view: string) => void;
+}
+
+export function WorkspaceLayout({ onNavigate }: WorkspaceLayoutProps) {
   const ws = useWorkspace();
 
   return (
@@ -289,6 +306,7 @@ export function WorkspaceLayout() {
         phase={ws.phase}
         activeTab={ws.activeNavTab}
         setActiveTab={ws.setActiveNavTab}
+        onNavigate={onNavigate}
       />
       <div className="flex flex-1 overflow-hidden relative">
         <ActivityBar active="explorer" />

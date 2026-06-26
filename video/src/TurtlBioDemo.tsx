@@ -4,12 +4,12 @@ import { fade } from "@remotion/transitions/fade";
 import { LandingScene } from "./LandingScene";
 import { WorkspaceScene } from "./WorkspaceScene";
 
-// Shot 1: Landing page — 4 seconds (120 frames at 30fps)
+// Landing: 4s (120 frames at 30fps)
 const LANDING_DURATION = 120;
-// Transition: fade — 0.5 seconds (15 frames)
+// Fade transition: 0.5s (15 frames overlap)
 const FADE_DURATION = 15;
-// Shots 2-6: Workspace — 51 seconds (1530 frames at 30fps)
-const WORKSPACE_DURATION = 1530;
+// Workspace: 46.5s (1395 frames at 30fps)
+const WORKSPACE_DURATION = 1395;
 
 export const TurtlBioDemo: React.FC = () => {
   return (

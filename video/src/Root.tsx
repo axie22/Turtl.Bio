@@ -1,12 +1,12 @@
 import { Composition } from "remotion";
 import { TurtlBioDemo } from "./TurtlBioDemo";
 
-// 30fps, ~54 seconds total
+// 30fps, ~50 seconds total
 // Landing: 120 frames (4s)
 // Fade transition: 15 frames (overlap)
-// Workspace: 1530 frames (~51s)
-// Total composition: 120 + 1530 - 15 = 1635 frames
-const DURATION = 1635;
+// Workspace: 1395 frames (46.5s)
+// Total: 120 + 1395 - 15 = 1500 frames
+const DURATION = 1500;
 
 export const RemotionRoot = () => {
   return (
