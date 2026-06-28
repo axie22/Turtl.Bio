@@ -32,13 +32,13 @@ export const PROGRAM_SUBTITLE = "auto-plotted from TPP + submission docs";
 export const PROGRAM_DATE = "06-25-2026";
 
 // ─── Grid constants ────────────────────────────────────────────────────────────
-// 6 columns × 4 rows
+// 6 columns × 4 rows — 190px column pitch, 32px gap between cards
 export const CARD_W = 158;
 export const CARD_H = 70;
-export const COL_X = [20, 204, 388, 572, 756, 900];
-export const ROW_Y = [20, 142, 262, 382];
-export const CANVAS_W = 1090;
-export const CANVAS_H = 470;
+export const COL_X = [20, 210, 400, 590, 780, 970];
+export const ROW_Y = [20, 148, 272, 396];
+export const CANVAS_W = 1160;
+export const CANVAS_H = 490;
 
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 //
@@ -212,7 +212,7 @@ export const NODES: MapNode[] = [
     subtitle: "clear path to IND",
     lane: "funding",
     status: "backlog",
-    col: 4, row: 3,
+    col: 5, row: 3,
     ganttStart: 3.75, ganttDuration: 0.25,
     ganttShiftOnTypeC: 0.25,
   },
@@ -324,18 +324,18 @@ export const STATUS_CONFIG: Record<
   NodeStatus,
   { label: string; bg: string; text: string }
 > = {
-  done:           { label: "Done",         bg: "bg-ws-teal/20",      text: "text-ws-teal" },
-  "in-progress":  { label: "In Progress",  bg: "bg-blue-500/20",     text: "text-blue-400" },
-  active:         { label: "Active",       bg: "bg-emerald-500/20",  text: "text-emerald-400" },
-  planned:        { label: "Planned",      bg: "bg-amber-500/20",    text: "text-amber-400" },
-  backlog:        { label: "Backlog",      bg: "bg-ws-highest/60",   text: "text-ws-text/40" },
-  "runway-risk":  { label: "Runway Risk",  bg: "bg-amber-500/10",    text: "text-amber-400" },
+  done:           { label: "Done",         bg: "bg-teal-100",        text: "text-teal-700" },
+  "in-progress":  { label: "In Progress",  bg: "bg-blue-100",        text: "text-blue-700" },
+  active:         { label: "Active",       bg: "bg-emerald-100",     text: "text-emerald-700" },
+  planned:        { label: "Planned",      bg: "bg-amber-100",       text: "text-amber-700" },
+  backlog:        { label: "Backlog",      bg: "bg-ws-high",         text: "text-ws-text/40" },
+  "runway-risk":  { label: "Runway Risk",  bg: "bg-amber-100",       text: "text-amber-700" },
 };
 
 export const LANE_COLOR: Record<NodeLane, string> = {
-  funding: "#22c55e",
-  sponsor: "#54dcbc",
-  fda:     "#60a5fa",
+  funding: "#16a34a",
+  sponsor: "#0d9488",
+  fda:     "#2563eb",
 };
 
 // ─── Copilot canned response ──────────────────────────────────────────────────
