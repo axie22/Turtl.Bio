@@ -172,7 +172,7 @@ function LaneSeparator({ label, color }: { label: string; color: string }) {
   return (
     <div
       className="flex items-center border-b border-ws-highest/20"
-      style={{ height: 22, backgroundColor: "#0f1318" }}
+      style={{ height: 22, backgroundColor: "var(--color-ws-low)" }}
     >
       <div className="shrink-0 flex items-center gap-2 px-3" style={{ width: LABEL_W }}>
         <div className="w-2 h-px" style={{ backgroundColor: color }} />
@@ -204,13 +204,13 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
   const fundingNodes = allNodes.filter((n) => n.lane === "funding" && !n.ganttIsGap);
 
   return (
-    <div className="flex-1 overflow-auto" style={{ backgroundColor: "#10141a" }}>
+    <div className="flex-1 overflow-auto" style={{ backgroundColor: "var(--color-ws-bg)" }}>
       <div style={{ minWidth: LABEL_W + Q_COUNT * Q_W + 40 }}>
 
         {/* Quarter headers */}
         <div
           className="sticky top-0 z-10 flex border-b border-ws-highest/30"
-          style={{ backgroundColor: "#151a21", height: HEADER_H }}
+          style={{ backgroundColor: "var(--color-ws-mid)", height: HEADER_H }}
         >
           <div
             className="shrink-0 border-r border-ws-highest/20 flex items-end px-3 pb-2"
@@ -249,7 +249,7 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
       </div>
 
       {typeCEnabled && (
-        <div className="sticky bottom-0 px-4 py-2 text-right" style={{ backgroundColor: "rgba(10,14,20,0.9)" }}>
+        <div className="sticky bottom-0 px-4 py-2 text-right" style={{ backgroundColor: "rgba(244,245,247,0.92)" }}>
           <span className="font-label text-[9px] text-amber-400/70">
             ↕ Type C scenario active — Type B, GLP Reporting, IND, Series A shifted +1 quarter
           </span>

@@ -195,7 +195,7 @@ function CompetitorCard({ item }: { item: CompetitorItem }) {
           <span className={`font-label text-[8.5px] font-medium ${s.text}`}>{item.statusLabel}</span>
         </div>
       </div>
-      <div className="p-2 bg-ws-bg/40 rounded-sm border border-ws-highest/15">
+      <div className="p-2 bg-ws-high/40 rounded-sm border border-ws-highest/30">
         <span className="font-label text-[8.5px] uppercase tracking-widest text-ws-text/25 mr-1">Outcome:</span>
         <span className="font-label text-[9.5px] text-ws-text/50">{item.outcome}</span>
       </div>
