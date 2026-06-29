@@ -23,54 +23,77 @@ function nodeY(n: MapNode) { return ROW_Y[n.row]; }
 function nodeCX(n: MapNode) { return nodeX(n) + CARD_W / 2; }
 function nodeCY(n: MapNode) { return nodeY(n) + CARD_H / 2; }
 
-// Extra vertical space below the canvas so the Env Assess wide arc is visible
-const ARC_OVERHANG = 90;
-// Y coordinate where the wide arc dips — clear of all nodes
-const ARC_Y = CANVAS_H + 45;
+// Extra vertical space so backward/long arcs below the canvas are visible
+const ARC_OVERHANG = 110;
+const ARC_Y = CANVAS_H + 55;
 
-function getEdgePath(src: MapNode, tgt: MapNode): string {
+// t=0.5 point on a cubic bezier B(t)=Σ C(3,i)*(1-t)^(3-i)*t^i * P_i
+function bezierMid(
+  p0x: number, p0y: number,
+  c1x: number, c1y: number,
+  c2x: number, c2y: number,
+  p3x: number, p3y: number
+): { lx: number; ly: number } {
+  return {
+    lx: 0.125 * p0x + 0.375 * c1x + 0.375 * c2x + 0.125 * p3x,
+    ly: 0.125 * p0y + 0.375 * c1y + 0.375 * c2y + 0.125 * p3y,
+  };
+}
+
+interface EdgeRoute { path: string; lx: number; ly: number }
+
+function routeEdge(src: MapNode, tgt: MapNode): EdgeRoute {
   const sx = nodeX(src); const sy = nodeY(src);
   const tx = nodeX(tgt); const ty = nodeY(tgt);
   const scy = nodeCY(src); const tcy = nodeCY(tgt);
   const scx = nodeCX(src); const tcx = nodeCX(tgt);
+  const colDiff = tgt.col - src.col;
+  const rowDiff = tgt.row - src.row;
 
-  // Same column going down → exit bottom, enter top
-  if (src.col === tgt.col && src.row < tgt.row) {
-    const y1 = sy + CARD_H; const y2 = ty;
-    const my = (y1 + y2) / 2;
-    return `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`;
+  // ── Same column, down: exit bottom → enter top ──────────────────────────────
+  if (colDiff === 0 && rowDiff > 0) {
+    const y1 = sy + CARD_H; const y2 = ty; const my = (y1 + y2) / 2;
+    return { path: `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`, ...bezierMid(scx, y1, scx, my, tcx, my, tcx, y2) };
   }
 
-  // Same column going up → exit top, enter bottom
-  if (src.col === tgt.col && src.row > tgt.row) {
-    const y1 = sy; const y2 = ty + CARD_H;
-    const my = (y1 + y2) / 2;
-    return `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`;
+  // ── Same column, up: exit top → enter bottom ────────────────────────────────
+  if (colDiff === 0 && rowDiff < 0) {
+    const y1 = sy; const y2 = ty + CARD_H; const my = (y1 + y2) / 2;
+    return { path: `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`, ...bezierMid(scx, y1, scx, my, tcx, my, tcx, y2) };
   }
 
-  // Long-span forward edge (3+ cols apart, same or adjacent row) → wide arc below cluster
-  // Env Assess (col 1) → IND Submission (col 5); avoids tangling through nodes
-  if (tgt.col - src.col >= 3 && Math.abs(src.row - tgt.row) <= 1) {
-    const x1 = sx + CARD_W;
-    const x2 = tx;
-    return `M ${x1},${scy} C ${x1 + 80},${ARC_Y} ${x2 - 80},${ARC_Y} ${x2},${tcy}`;
-  }
-
-  // Default → right-to-left cubic bezier (forward, same-row or diagonal)
-  const x1 = sx + CARD_W; const x2 = tx;
-  const mx = (x1 + x2) / 2;
-  return `M ${x1},${scy} C ${mx},${scy} ${mx},${tcy} ${x2},${tcy}`;
-}
-
-function getEdgeLabelPoint(src: MapNode, tgt: MapNode): { x: number; y: number } {
-  // Wide arc: place label at the arc's visual nadir so it doesn't overlap nodes
-  if (tgt.col - src.col >= 3 && Math.abs(src.row - tgt.row) <= 1) {
+  // ── Long-span forward (3+ cols, same/adjacent row): wide arc below cluster ──
+  if (colDiff >= 3 && Math.abs(rowDiff) <= 1) {
+    const x1 = sx + CARD_W; const x2 = tx;
     return {
-      x: (nodeCX(src) + nodeCX(tgt)) / 2,
-      y: ARC_Y + 14,
+      path: `M ${x1},${scy} C ${x1 + 80},${ARC_Y} ${x2 - 80},${ARC_Y} ${x2},${tcy}`,
+      lx: (nodeCX(src) + nodeCX(tgt)) / 2,
+      ly: ARC_Y + 14,
     };
   }
-  return { x: (nodeCX(src) + nodeCX(tgt)) / 2, y: (nodeCY(src) + nodeCY(tgt)) / 2 };
+
+  // ── Backward (target left of source): exit bottom → arc below → enter top ───
+  if (colDiff < 0) {
+    const y1 = sy + CARD_H; const y2 = ty;
+    const pullY = Math.max(y1, ty + CARD_H) + 72;
+    return { path: `M ${scx},${y1} C ${scx},${pullY} ${tcx},${pullY} ${tcx},${y2}`, ...bezierMid(scx, y1, scx, pullY, tcx, pullY, tcx, y2) };
+  }
+
+  // ── Forward diagonal up: exit top → enter bottom (clears intermediate cards) ─
+  if (rowDiff < 0) {
+    const y1 = sy; const y2 = ty + CARD_H; const my = (y1 + y2) / 2;
+    return { path: `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`, ...bezierMid(scx, y1, scx, my, tcx, my, tcx, y2) };
+  }
+
+  // ── Forward diagonal down: exit bottom → enter top ──────────────────────────
+  if (rowDiff > 0) {
+    const y1 = sy + CARD_H; const y2 = ty; const my = (y1 + y2) / 2;
+    return { path: `M ${scx},${y1} C ${scx},${my} ${tcx},${my} ${tcx},${y2}`, ...bezierMid(scx, y1, scx, my, tcx, my, tcx, y2) };
+  }
+
+  // ── Same row, forward: horizontal bezier right-exit → left-entry ────────────
+  const x1 = sx + CARD_W; const x2 = tx; const mx = (x1 + x2) / 2;
+  return { path: `M ${x1},${scy} C ${mx},${scy} ${mx},${tcy} ${x2},${tcy}`, ...bezierMid(x1, scy, mx, scy, mx, tcy, x2, tcy) };
 }
 
 // ─── NodeCard ────────────────────────────────────────────────────────────────
@@ -183,8 +206,7 @@ function EdgeLayer({ nodes, edges }: EdgeLayerProps) {
         const tgt = nodeMap[edge.to];
         if (!src || !tgt) return null;
 
-        const path = getEdgePath(src, tgt);
-        const mid = getEdgeLabelPoint(src, tgt);
+        const { path, lx, ly } = routeEdge(src, tgt);
         const isTypeC = edge.scenario === "typeC";
         const strokeColor = isTypeC ? "#d97706" : edge.bold ? "#0d9488" : "#94a3b8";
         const markerId = isTypeC ? "arr-tc" : edge.bold ? "arr-bold" : "arr";
@@ -202,18 +224,18 @@ function EdgeLayer({ nodes, edges }: EdgeLayerProps) {
             />
             {edge.label && (
               <text
-                x={mid.x}
-                y={mid.y}
+                x={lx}
+                y={ly}
                 textAnchor="middle"
+                dominantBaseline="middle"
                 className="font-label"
                 style={{
                   fontSize: 9,
                   fontFamily: "'Space Grotesk', sans-serif",
                   fill: labelFill,
-                  // White halo so labels are legible over nodes and edges
                   paintOrder: "stroke fill",
-                  stroke: "rgba(244,245,247,0.95)",
-                  strokeWidth: 4,
+                  stroke: "rgba(244,245,247,0.98)",
+                  strokeWidth: 5,
                   strokeLinejoin: "round",
                 }}
               >
