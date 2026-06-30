@@ -20,6 +20,103 @@ type NavTab = "explorer" | "path-map" | "regulatory-ai";
 // Main area tab: "map" is the pinned graph/gantt tab; anything else is a doc ID
 type MainTab = "map" | string;
 
+// ─── Scenario Dropdown ───────────────────────────────────────────────────────
+
+const SCENARIOS = [
+  {
+    id: "typeC" as const,
+    label: "+ Type C Meeting",
+    description: "CMC focus · optional FDA meeting track",
+    detail: "Delays Type B Prep by ~1 quarter. Use when FDA requests additional CMC alignment before pre-IND.",
+  },
+];
+
+interface ScenarioDropdownProps {
+  typeCEnabled: boolean;
+  onToggle: () => void;
+}
+
+function ScenarioDropdown({ typeCEnabled, onToggle }: ScenarioDropdownProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={`flex items-center gap-2 px-2.5 py-1.5 bg-ws-lowest border rounded-sm transition-colors ${
+          open ? "border-ws-teal/40" : "border-ws-highest/30 hover:border-ws-highest/50"
+        }`}
+      >
+        <span className="material-symbols-outlined text-[13px] text-ws-text/35">tune</span>
+        <span className="font-label text-[10px] text-ws-text/60">Scenarios</span>
+        {typeCEnabled && (
+          <span className="font-label text-[8px] px-1.5 py-0.5 rounded-full bg-amber-400/15 text-amber-500 border border-amber-400/25">
+            1 active
+          </span>
+        )}
+        <span
+          className={`material-symbols-outlined text-[12px] text-ws-text/30 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+        >
+          expand_more
+        </span>
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="absolute right-0 top-full mt-1.5 z-50 bg-ws-lowest border border-ws-highest/30 rounded-sm shadow-xl"
+            style={{ minWidth: 256 }}
+          >
+            <div className="px-3 pt-2.5 pb-1">
+              <span className="font-label text-[8px] uppercase tracking-widest text-ws-text/30">
+                Available Scenarios
+              </span>
+            </div>
+            {SCENARIOS.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-start gap-3 px-3 py-2.5 mx-1 mb-1 rounded-sm hover:bg-ws-bg cursor-pointer transition-colors"
+                onClick={() => onToggle()}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-label text-[10.5px] font-semibold text-ws-text/80 mb-0.5">
+                    {s.label}
+                  </div>
+                  <div className="font-label text-[8.5px] text-ws-text/40 leading-relaxed">
+                    {s.description}
+                  </div>
+                  {typeCEnabled && (
+                    <div className="font-label text-[8px] text-amber-500/70 mt-1 leading-relaxed">
+                      {s.detail}
+                    </div>
+                  )}
+                </div>
+                <div
+                  onClick={(e) => { e.stopPropagation(); onToggle(); }}
+                  className={`relative w-8 h-4 rounded-full transition-colors duration-200 shrink-0 mt-0.5 ${
+                    typeCEnabled ? "bg-ws-teal-dark" : "bg-ws-highest"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${
+                      typeCEnabled ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </div>
+              </div>
+            ))}
+            <div className="border-t border-ws-highest/15 px-3 py-2">
+              <span className="font-label text-[8px] text-ws-text/20">
+                More scenarios coming soon
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Top Nav ─────────────────────────────────────────────────────────────────
 
 interface TopNavProps {
@@ -70,18 +167,7 @@ function TopNav({ activeTab, setActiveTab, typeCEnabled, onToggleTypeC, onNaviga
           />
           <span className="font-label text-[9px] text-ws-text/20 ml-1.5">⌘K</span>
         </div>
-        <div className="flex items-center gap-2 px-2.5 py-1.5 bg-ws-lowest border border-ws-highest/30 rounded-sm">
-          <span className="font-label text-[10px] text-ws-text/50">Scenario:</span>
-          <span className={`font-label text-[10px] font-medium ${typeCEnabled ? "text-ws-teal" : "text-ws-text/40"}`}>
-            + Type C meeting
-          </span>
-          <button
-            onClick={onToggleTypeC}
-            className={`relative w-8 h-4 rounded-full transition-colors duration-200 ${typeCEnabled ? "bg-ws-teal-dark" : "bg-ws-highest"}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform duration-200 ${typeCEnabled ? "translate-x-4" : "translate-x-0"}`} />
-          </button>
-        </div>
+        <ScenarioDropdown typeCEnabled={typeCEnabled} onToggle={onToggleTypeC} />
         <div className="flex items-center gap-2">
           <button className="text-ws-text/30 hover:text-ws-text/70 transition-colors">
             <span className="material-symbols-outlined text-[18px]">settings</span>

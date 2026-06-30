@@ -77,61 +77,99 @@ function NodeCard({ node, isSelected, isOptionalUnactivated, onClick, onActivate
     else onClick(node.id);
   };
 
+  // Diamond shape for milestones
+  if (node.isMilestone) {
+    const cx = nodeX(node) + CARD_W / 2;
+    const cy = nodeY(node) + CARD_H / 2;
+    const dSize = CARD_H * 0.92;
+    return (
+      <div
+        className="absolute select-none cursor-pointer group"
+        style={{ left: cx - dSize / 2, top: cy - dSize / 2, width: dSize, height: dSize,
+          opacity: isOptionalUnactivated ? 0.5 : 1, transition: "opacity 0.2s", zIndex: 2 }}
+        onClick={handleClick}
+      >
+        <div
+          className="w-full h-full flex items-center justify-center transition-all duration-150"
+          style={{
+            transform: "rotate(45deg)",
+            backgroundColor: isOptionalUnactivated ? "var(--color-ws-low)"
+              : isSelected ? laneColor + "20" : "var(--color-ws-lowest)",
+            border: isOptionalUnactivated ? `1.5px dashed ${laneColor}70`
+              : `2px solid ${isSelected ? laneColor : laneColor + "90"}`,
+            boxShadow: isSelected
+              ? `0 0 0 1px ${laneColor}40, 0 2px 8px ${laneColor}20`
+              : `0 1px 3px rgba(0,0,0,0.08)`,
+          }}
+        >
+          <div className="text-center px-1" style={{ transform: "rotate(-45deg)", maxWidth: dSize * 0.72 }}>
+            <div className="font-label text-[9.5px] font-semibold leading-tight"
+              style={{ color: isOptionalUnactivated ? laneColor + "80" : laneColor }}>
+              {node.label}
+            </div>
+            {isOptionalUnactivated && (
+              <div className="font-label text-[7.5px] text-amber-500 mt-0.5">Optional</div>
+            )}
+          </div>
+        </div>
+        {isOptionalUnactivated && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <span className="font-label text-[7.5px] text-ws-teal bg-ws-lowest/90 px-2 py-0.5 rounded-sm border border-ws-teal/20 shadow-sm">
+              + Add
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Pill shape for regular nodes
   return (
     <div
       className="absolute select-none cursor-pointer group"
-      style={{
-        left: nodeX(node), top: nodeY(node), width: CARD_W, height: CARD_H,
-        opacity: isOptionalUnactivated ? 0.55 : 1,
-        transition: "opacity 0.2s ease",
-      }}
+      style={{ left: nodeX(node), top: nodeY(node), width: CARD_W, height: CARD_H,
+        opacity: isOptionalUnactivated ? 0.55 : 1, transition: "opacity 0.2s ease", zIndex: 2 }}
       onClick={handleClick}
     >
       <div
-        className="h-full rounded-sm flex flex-col justify-between transition-all duration-150"
+        className="h-full flex flex-col justify-center overflow-hidden transition-all duration-150"
         style={{
-          backgroundColor: isOptionalUnactivated ? "var(--color-ws-low)" : "var(--color-ws-lowest)",
-          border: isOptionalUnactivated
-            ? `1.5px dashed ${laneColor}88`
-            : `1px solid ${isSelected ? laneColor : "rgba(180,185,196,0.8)"}`,
-          boxShadow: isSelected && !isOptionalUnactivated
-            ? `0 0 0 1px ${laneColor}44, 0 0 12px ${laneColor}22`
-            : "none",
+          borderRadius: CARD_H * 0.45,
+          backgroundColor: isOptionalUnactivated ? "var(--color-ws-low)"
+            : isSelected ? laneColor + "14" : "var(--color-ws-lowest)",
+          border: isOptionalUnactivated ? `1.5px dashed ${laneColor}70`
+            : `2px solid ${isSelected ? laneColor : laneColor + "70"}`,
+          boxShadow: isSelected
+            ? `0 0 0 1px ${laneColor}30, 0 2px 12px ${laneColor}18`
+            : `0 1px 3px rgba(0,0,0,0.07), 0 0 0 0.5px rgba(0,0,0,0.04)`,
         }}
       >
-        <div
-          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-sm"
-          style={{ backgroundColor: isOptionalUnactivated ? laneColor + "30" : laneColor + "60" }}
-        />
-        <div className="px-3 pt-2.5 pb-1">
-          <div className="font-label text-[11.5px] font-semibold text-ws-text leading-tight truncate">
-            {node.isMilestone && <span className="mr-1 text-[10px] opacity-60">◇</span>}
+        <div className="px-4">
+          <div className="font-label text-[11px] font-semibold leading-tight truncate"
+            style={{ color: isOptionalUnactivated ? "rgba(17,24,39,0.4)" : laneColor }}>
             {node.label}
           </div>
-          <div className="font-label text-[10px] mt-0.5 truncate" style={{ color: "rgba(17,24,39,0.55)" }}>
+          <div className="font-label text-[9.5px] mt-0.5 truncate" style={{ color: "rgba(17,24,39,0.40)" }}>
             {node.subtitle}
           </div>
         </div>
-        <div className="px-3 pb-2 flex items-center justify-between">
-          <span
-            className="font-label text-[9px] px-1.5 py-0.5 rounded-sm"
-            style={{ backgroundColor: "rgba(0,0,0,0.05)", color: "rgba(17,24,39,0.45)" }}
-          >
+        <div className="px-4 mt-1.5 flex items-center justify-between">
+          <span className="font-label text-[8.5px]" style={{ color: "rgba(17,24,39,0.22)" }}>
             {node.id}
           </span>
           {isOptionalUnactivated ? (
-            <span className="font-label text-[9px] px-1.5 py-0.5 rounded-sm text-amber-500 bg-amber-400/10 border border-amber-400/25">
+            <span className="font-label text-[8px] px-1.5 py-0.5 rounded-full text-amber-500 bg-amber-400/10 border border-amber-400/20">
               Optional
             </span>
           ) : (
-            <span className={`font-label text-[9px] px-1.5 py-0.5 rounded-sm ${st.bg} ${st.text}`}>
+            <span className={`font-label text-[8px] px-1.5 py-0.5 rounded-full ${st.bg} ${st.text}`}>
               {st.label}
             </span>
           )}
         </div>
         {isOptionalUnactivated && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-sm">
-            <span className="font-label text-[8px] text-ws-teal bg-ws-lowest/90 px-2 py-0.5 rounded-sm border border-ws-teal/20">
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <span className="font-label text-[8px] text-ws-teal bg-ws-lowest/90 px-2 py-0.5 rounded-full border border-ws-teal/20">
               + Add to scenario
             </span>
           </div>
