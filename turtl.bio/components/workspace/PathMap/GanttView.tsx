@@ -142,14 +142,14 @@ function GanttRow({ node, typeCEnabled }: GanttRowProps) {
         {/* Bar */}
         <div
           className={`absolute top-1/2 -translate-y-1/2 rounded-sm flex items-center px-2 transition-all duration-500 ${
-            isShifted ? "ring-1 ring-amber-400/40" : ""
+            isShifted ? "ring-1 ring-amber-400/60" : ""
           }`}
           style={{
             left,
             width,
-            height: ROW_H * 0.52,
-            backgroundColor: laneColor + "22",
-            borderColor: laneColor + "55",
+            height: ROW_H * 0.62,
+            backgroundColor: laneColor + "38",
+            borderColor: laneColor + "99",
             borderWidth: 1,
             borderStyle: "solid",
           }}
