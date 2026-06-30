@@ -23,8 +23,8 @@ function nodeY(n: MapNode) { return ROW_Y[n.row]; }
 function nodeCX(n: MapNode) { return nodeX(n) + CARD_W / 2; }
 function nodeCY(n: MapNode) { return nodeY(n) + CARD_H / 2; }
 
-const ARC_OVERHANG = 90;
-const ARC_Y = CANVAS_H + 45;
+const ARC_OVERHANG = 110;
+const ARC_Y = CANVAS_H + 55;
 
 function getEdgePath(src: MapNode, tgt: MapNode): string {
   const sx = nodeX(src); const sy = nodeY(src);

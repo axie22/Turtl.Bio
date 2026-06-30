@@ -132,13 +132,13 @@ export const PROGRAM_SUBTITLE = "auto-plotted from TPP + submission docs";
 export const PROGRAM_DATE = "06-25-2026";
 
 // ─── Grid constants ────────────────────────────────────────────────────────────
-// 6 columns × 4 rows — 190px column pitch, 32px gap between cards
+// 6 columns × 4 rows — 250px column pitch, 92px gap between cards
 export const CARD_W = 158;
-export const CARD_H = 70;
-export const COL_X = [20, 210, 400, 590, 780, 970];
-export const ROW_Y = [20, 148, 272, 396];
-export const CANVAS_W = 1160;
-export const CANVAS_H = 490;
+export const CARD_H = 72;
+export const COL_X = [20, 270, 520, 770, 1020, 1270];
+export const ROW_Y = [20, 190, 360, 530];
+export const CANVAS_W = 1470;
+export const CANVAS_H = 640;
 
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 //
