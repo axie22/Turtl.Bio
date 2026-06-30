@@ -3,6 +3,29 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { NODES, COPILOT_RESPONSE } from "./data";
 
+const NODE_QUESTIONS: Record<string, string> = {
+  "END-01": "Does our Yucatan pig colonization data satisfy FDA's persistence expectation for LBP INDs per the 2022 draft guidance?",
+  "END-02": "What GLP tox species is most defensible for END-101 given our Yucatan pig non-GLP data? What should we bring to INTERACT?",
+  "END-04": "What GLP tox design elements (dose levels, duration, endpoints) should we align with FDA on at the INTERACT meeting?",
+  "END-GR": "What are the species-justification arguments we should prepare for the INTERACT meeting given FDA's 2022 LBP guidance?",
+  "END-05": "Does the 2022 FDA LBP draft guidance specify what environmental data is expected in an IND for a chassis-native organism?",
+  "END-06": "What does the FDA 2022 LBP draft guidance say about GLP reporting requirements and what format is expected in the IND?",
+  "END-08": "What environmental fate data do we need for the EA under FDA's 2015 guidance? Is our off-switch data sufficient?",
+  "END-07": "Does our current package meet the minimum IND content requirements under 21 CFR 312.23 for a Phase 1 LBP trial?",
+  "END-CP": "What does a Type C meeting add over a Type B pre-IND meeting for END-101's species justification gap?",
+  "END-0C": "What are the IND content requirements specific to LBPs and how does END-101's current package map against them?",
+  "END-IP": "What is the minimum efficacy bar we should put in the TPP to remain credible to FDA while setting achievable Phase 2 goals?",
+  "END-03": "How does our TPP indication statement compare to what FDA has accepted for other rare metabolic disease LBPs?",
+  "END-BP": "What are the key TPP claims we need to validate in Phase 1 to support a BLA pathway for PKU?",
+  "FUND-01": "Does our SBIR Phase 1 data package support a compelling Phase 2 application for IND-enabling studies?",
+  "FUND-02": "What milestones should the SBIR Phase 2 application target to align with an IND filing timeline?",
+  "FUND-03": "What Series A biotech investors are currently active in LBP / live biotherapeutic programs?",
+  "FUND-04": "At what preclinical milestone does a chassis-native LBP program typically close a seed round?",
+  "FUND-05": "What Series A metrics — colonization data, species justification, EA — would de-risk this program for a biotech investor?",
+};
+
+const DEFAULT_QUESTION = "Does this tox study apply here?";
+
 type CopilotStep =
   | "idle"
   | "decomposing"
@@ -44,7 +67,7 @@ export function CopilotPanel({
   collapsed,
   onToggle,
 }: CopilotPanelProps) {
-  const [query, setQuery] = useState("Does this tox study apply here?");
+  const [query, setQuery] = useState(DEFAULT_QUESTION);
   const [step, setStep] = useState<CopilotStep>("idle");
   const [activeTab, setActiveTab] = useState<ResponseTab>("analysis");
   const [verification, setVerification] = useState<VerificationStatus>("pending");
@@ -53,6 +76,14 @@ export function CopilotPanel({
   const stepRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const selectedNodeObjects = NODES.filter((n) => selectedNodes.has(n.id));
+
+  // Prefill query with node-specific question when a node is selected
+  useEffect(() => {
+    if (selectedNodeObjects.length === 0) return;
+    const lastNode = selectedNodeObjects[selectedNodeObjects.length - 1];
+    const q = NODE_QUESTIONS[lastNode.id];
+    if (q && step === "idle") setQuery(q);
+  }, [selectedNodes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAsk = useCallback(() => {
     if (step !== "idle" && step !== "done") return;

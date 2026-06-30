@@ -42,3 +42,5 @@ next-env.d.ts
 
 demo.md
 
+*.png
+.playwright-mcp/

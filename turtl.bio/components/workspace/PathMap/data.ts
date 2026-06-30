@@ -15,8 +15,108 @@ export interface MapNode {
   ganttShiftOnTypeC?: number; // extra quarters added when Type C is enabled
   ganttIsLongBar?: boolean;  // renders as a full-width background bar (Env Assess)
   ganttIsGap?: boolean;      // renders with hatched amber style (runway risk)
-  scenario?: "typeC";        // only shown when Type C toggle is on
+  scenario?: "typeC";        // optional scenario node
+  docRef?: string;           // ID of the primary document for this node
 }
+
+// ─── Program documents ────────────────────────────────────────────────────────
+
+export interface ProgramDoc {
+  id: string;
+  filename: string;
+  label: string;
+  size: string;
+  icon: string;
+  color: string;
+  tags: string[];
+  category: "program" | "guidance";
+}
+
+export const PROGRAM_DOCS: ProgramDoc[] = [
+  {
+    id: "doc-tpp",
+    filename: "END-101_TPP_v2.3.pdf",
+    label: "Target Product Profile",
+    size: "148 KB",
+    icon: "description",
+    color: "#2563eb",
+    tags: ["PKU indication", "live biotherapeutic", "oral route"],
+    category: "program",
+  },
+  {
+    id: "doc-nglp",
+    filename: "Yucatan_NonGLP_InVivo_Summary.pdf",
+    label: "Non-GLP In Vivo Study",
+    size: "2.1 MB",
+    icon: "biotech",
+    color: "#d97706",
+    tags: ["YOUR COLONIZATION DATA", "Yucatan pig", "sustained colonization"],
+    category: "program",
+  },
+  {
+    id: "doc-sbir",
+    filename: "SBIR_Phase1_Application.pdf",
+    label: "SBIR Phase 1 Grant Application",
+    size: "892 KB",
+    icon: "attach_money",
+    color: "#16a34a",
+    tags: ["NIH", "$300K feasibility", "microbiome"],
+    category: "program",
+  },
+  {
+    id: "doc-fda-lbp",
+    filename: "FDA_2022_LBP_Draft_Guidance.pdf",
+    label: "Early Clinical Trials with LBPs (Nonclinical)",
+    size: "312 KB",
+    icon: "gavel",
+    color: "#6366f1",
+    tags: ["FDA, 2022", "Draft Guidance"],
+    category: "guidance",
+  },
+  {
+    id: "doc-ich-s6",
+    filename: "ICH_S6_R1_Preclinical_Safety.pdf",
+    label: "Preclinical Safety Evaluation of Biotech Pharmaceuticals",
+    size: "198 KB",
+    icon: "science",
+    color: "#6366f1",
+    tags: ["ICH, 2011", "Guidance"],
+    category: "guidance",
+  },
+  {
+    id: "doc-fda-ea",
+    filename: "FDA_2015_Environmental_Assessment.pdf",
+    label: "Environmental Assessment for Biological INDs",
+    size: "145 KB",
+    icon: "park",
+    color: "#6366f1",
+    tags: ["FDA, 2015", "Guidance"],
+    category: "guidance",
+  },
+];
+
+// Node → primary document mapping
+export const NODE_DOC_MAP: Record<string, string> = {
+  "END-01":  "doc-nglp",
+  "END-02":  "doc-nglp",
+  "END-08":  "doc-fda-ea",
+  "END-00":  "doc-nglp",
+  "END-IP":  "doc-tpp",
+  "END-03":  "doc-tpp",
+  "END-04":  "doc-fda-lbp",
+  "END-GR":  "doc-fda-lbp",
+  "END-BP":  "doc-tpp",
+  "END-05":  "doc-tpp",
+  "END-06":  "doc-tpp",
+  "END-07":  "doc-tpp",
+  "END-CP":  "doc-fda-lbp",
+  "END-0C":  "doc-fda-lbp",
+  "FUND-01": "doc-sbir",
+  "FUND-02": "doc-sbir",
+  "FUND-03": "doc-sbir",
+  "FUND-04": "doc-tpp",
+  "FUND-05": "doc-tpp",
+};
 
 export interface MapEdge {
   from: string;
@@ -32,13 +132,13 @@ export const PROGRAM_SUBTITLE = "auto-plotted from TPP + submission docs";
 export const PROGRAM_DATE = "06-25-2026";
 
 // ─── Grid constants ────────────────────────────────────────────────────────────
-// 6 columns × 4 rows — 190px column pitch, 32px gap between cards
+// 6 columns × 4 rows — 250px column pitch, 92px gap between cards
 export const CARD_W = 158;
-export const CARD_H = 70;
-export const COL_X = [20, 210, 400, 590, 780, 970];
-export const ROW_Y = [20, 148, 272, 396];
-export const CANVAS_W = 1160;
-export const CANVAS_H = 490;
+export const CARD_H = 72;
+export const COL_X = [20, 270, 520, 770, 1020, 1270];
+export const ROW_Y = [20, 190, 360, 530];
+export const CANVAS_W = 1470;
+export const CANVAS_H = 640;
 
 // ─── Nodes ────────────────────────────────────────────────────────────────────
 //
