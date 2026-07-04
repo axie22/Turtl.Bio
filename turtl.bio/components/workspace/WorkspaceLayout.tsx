@@ -5,39 +5,42 @@ import { EvidenceCard } from "./EvidenceCard";
 import { ExplorerPanel } from "./ExplorerPanel";
 import { CopilotPanel } from "./CopilotPanel";
 import { StatusBar } from "./StatusBar";
+import { PathMapLayout } from "./PathMap/PathMapLayout";
 
 /* ─── Activity Bar (left icon strip) ─── */
 
 const ACTIVITY_ICONS = [
-  { icon: "folder_open", id: "explorer", filled: true },
-  { icon: "search", id: "search" },
-  { icon: "account_tree", id: "tree" },
-  { icon: "pest_control", id: "debug" },
-  { icon: "smart_toy", id: "ai" },
+  { icon: "folder_open", id: "explorer", label: "Explorer" },
+  { icon: "search", id: "search", label: "Search" },
+  { icon: "smart_toy", id: "ai", label: "Regulatory AI" },
 ];
 
-function ActivityBar({ active }: { active: string }) {
+interface ActivityBarProps {
+  activeView: string;
+  onNavigate?: (view: string) => void;
+}
+
+function ActivityBar({ activeView, onNavigate }: ActivityBarProps) {
+  const isPathMap = activeView === "path-map";
   return (
     <aside className="bg-ws-lowest flex flex-col items-center py-4 w-16 shrink-0 z-40">
-      <div className="flex flex-col items-center gap-6 w-full">
+      <div className="flex flex-col items-center gap-1 w-full">
         {ACTIVITY_ICONS.map((item) => {
-          const isActive = item.id === active;
+          const isActive = item.id === "explorer" && !isPathMap;
           return (
             <div
               key={item.id}
-              className={`w-full flex justify-center py-2 transition-all cursor-pointer ${
+              title={item.label}
+              onClick={() => onNavigate?.("explorer")}
+              className={`w-full flex justify-center py-3 transition-all cursor-pointer ${
                 isActive
                   ? "border-l-2 border-ws-teal bg-ws-mid text-ws-teal"
-                  : "text-ws-text/40 hover:text-ws-text/80 hover:bg-ws-mid"
+                  : "border-l-2 border-transparent text-ws-text/40 hover:text-ws-text/80 hover:bg-ws-mid"
               }`}
             >
               <span
                 className="material-symbols-outlined"
-                style={
-                  isActive
-                    ? { fontVariationSettings: "'FILL' 1" }
-                    : undefined
-                }
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
               >
                 {item.icon}
               </span>
@@ -45,6 +48,27 @@ function ActivityBar({ active }: { active: string }) {
           );
         })}
       </div>
+
+      {/* Path Map icon — separated below the main icons */}
+      <div className="w-full mt-4 border-t border-ws-highest/20 pt-3">
+        <div
+          title="Path Map"
+          onClick={() => onNavigate?.(isPathMap ? "explorer" : "path-map")}
+          className={`w-full flex justify-center py-3 transition-all cursor-pointer ${
+            isPathMap
+              ? "border-l-2 border-ws-teal bg-ws-mid text-ws-teal"
+              : "border-l-2 border-transparent text-ws-text/40 hover:text-ws-text/80 hover:bg-ws-mid"
+          }`}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={isPathMap ? { fontVariationSettings: "'FILL' 1" } : undefined}
+          >
+            account_tree
+          </span>
+        </div>
+      </div>
+
       <div className="mt-auto flex flex-col items-center gap-4">
         <div className="w-8 h-8 rounded-sm bg-ws-highest flex items-center justify-center border border-ws-outline-dim/30">
           <span className="material-symbols-outlined text-ws-text/60 text-sm">
@@ -86,20 +110,12 @@ function TopNavBar({
   phase,
   activeTab,
   setActiveTab,
-  onNavigate,
 }: {
   phase: WorkspacePhase;
   activeTab: string;
   setActiveTab: (t: string) => void;
-  onNavigate?: (view: string) => void;
 }) {
   const phaseTabs = getNavTabs(phase);
-
-  const globalTabs = [
-    { id: "explorer", label: "Explorer" },
-    { id: "path-map", label: "Path Map" },
-    { id: "regulatory-ai", label: "Regulatory AI" },
-  ];
 
   return (
     <header className="bg-ws-mid text-ws-teal font-headline font-bold text-sm tracking-tight uppercase border-b border-ws-highest flex justify-between items-center px-4 w-full h-12 z-50 shrink-0">
@@ -107,25 +123,9 @@ function TopNavBar({
         <span className="text-lg font-black text-ws-teal font-headline uppercase tracking-wider mr-4">
           Turtl.Bio
         </span>
-        {/* Global view tabs */}
-        <nav className="hidden md:flex items-center gap-1">
-          {globalTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => onNavigate?.(tab.id)}
-              className={`px-3 py-1.5 font-label text-[11px] font-medium rounded-sm transition-colors ${
-                tab.id === "explorer"
-                  ? "text-ws-teal bg-ws-teal/10"
-                  : "text-ws-text/50 hover:text-ws-text/80 hover:bg-ws-highest/40"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
         {/* Phase-specific secondary tabs */}
         {phaseTabs.length > 0 && (
-          <nav className="hidden md:flex gap-4 items-center ml-4 pl-4 border-l border-ws-highest/30">
+          <nav className="hidden md:flex gap-4 items-center pl-2">
             {phaseTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -297,8 +297,9 @@ interface WorkspaceLayoutProps {
   onNavigate?: (view: string) => void;
 }
 
-export function WorkspaceLayout({ onNavigate }: WorkspaceLayoutProps) {
+export function WorkspaceLayout({ activeView = "explorer", onNavigate }: WorkspaceLayoutProps) {
   const ws = useWorkspace();
+  const isPathMap = activeView === "path-map";
 
   return (
     <div className="h-screen w-screen bg-ws-bg text-ws-text font-body flex flex-col overflow-hidden selection:bg-ws-teal/30">
@@ -306,49 +307,53 @@ export function WorkspaceLayout({ onNavigate }: WorkspaceLayoutProps) {
         phase={ws.phase}
         activeTab={ws.activeNavTab}
         setActiveTab={ws.setActiveNavTab}
-        onNavigate={onNavigate}
       />
       <div className="flex flex-1 overflow-hidden relative">
-        <ActivityBar active="explorer" />
-        <div className="w-64 shrink-0 border-r border-ws-highest/30">
-          <ExplorerPanel />
-        </div>
+        <ActivityBar activeView={activeView} onNavigate={onNavigate} />
 
-        {/* Center Content */}
-        <section className="flex-1 bg-ws-bg flex flex-col relative overflow-hidden">
-          {ws.phase === "idle" ? (
-            <>
-              <div className="bg-ws-low px-4 py-2 border-b border-ws-outline-dim/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm text-ws-teal">
-                    data_exploration
-                  </span>
-                  <h1 className="font-label text-[10px] uppercase tracking-[0.2em] font-bold text-ws-text">
-                    Interpretation Zone
-                  </h1>
-                </div>
-              </div>
-              <IdleView />
-            </>
-          ) : (
-            <InterpretationZone
-              phase={ws.phase as "analyzing" | "complete"}
-              visibleCards={ws.visibleCards}
+        {isPathMap ? (
+          /* ── Path Map embedded in the workspace shell ── */
+          <PathMapLayout embedded={true} />
+        ) : (
+          /* ── Regular explorer content ── */
+          <>
+            <div className="w-64 shrink-0 border-r border-ws-highest/30">
+              <ExplorerPanel />
+            </div>
+            <section className="flex-1 bg-ws-bg flex flex-col relative overflow-hidden">
+              {ws.phase === "idle" ? (
+                <>
+                  <div className="bg-ws-low px-4 py-2 border-b border-ws-outline-dim/10 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm text-ws-teal">
+                        data_exploration
+                      </span>
+                      <h1 className="font-label text-[10px] uppercase tracking-[0.2em] font-bold text-ws-text">
+                        Interpretation Zone
+                      </h1>
+                    </div>
+                  </div>
+                  <IdleView />
+                </>
+              ) : (
+                <InterpretationZone
+                  phase={ws.phase as "analyzing" | "complete"}
+                  visibleCards={ws.visibleCards}
+                />
+              )}
+            </section>
+            <CopilotPanel
+              phase={ws.phase}
+              indication={ws.indication}
+              setIndication={ws.setIndication}
+              modality={ws.modality}
+              setModality={ws.setModality}
+              query={ws.query}
+              setQuery={ws.setQuery}
+              onSubmit={ws.submitQuery}
             />
-          )}
-        </section>
-
-        {/* Right Panel */}
-        <CopilotPanel
-          phase={ws.phase}
-          indication={ws.indication}
-          setIndication={ws.setIndication}
-          modality={ws.modality}
-          setModality={ws.setModality}
-          query={ws.query}
-          setQuery={ws.setQuery}
-          onSubmit={ws.submitQuery}
-        />
+          </>
+        )}
       </div>
       <StatusBar phase={ws.phase} />
     </div>

@@ -11,10 +11,10 @@ import {
 
 const Q_COUNT = 4;
 const Q_W = 195;
-const ROW_H = 44;
+const ROW_H = 30;
 const LABEL_W = 200;
 const STAGE_W = 68;
-const HEADER_H = 54;
+const HEADER_H = 46;
 
 const STAGE_CONFIG: Record<string, { label: string; sublabel: string }> = {
   fda:     { label: "FDA Facing",              sublabel: "Stage 1" },
@@ -166,6 +166,102 @@ function GanttRow({ node, typeCEnabled }: GanttRowProps) {
   );
 }
 
+// ─── Cumulative funding bar ───────────────────────────────────────────────────
+
+const SUB_ROW_H = 26;
+
+// Lane-packing: place each bar in the first sub-row where it doesn't overlap
+// an already-placed bar, so all funding opportunities layer into a compact stack.
+function packFundingLanes(
+  nodes: MapNode[],
+  typeCEnabled: boolean
+): { node: MapNode; lane: number }[] {
+  const items = nodes
+    .map((node) => {
+      const start = effectiveStart(node, typeCEnabled);
+      return { node, start, end: start + node.ganttDuration };
+    })
+    .sort((a, b) => a.start - b.start);
+
+  const laneEnds: number[] = [];
+  const result: { node: MapNode; lane: number }[] = [];
+
+  for (const item of items) {
+    let placed = false;
+    for (let i = 0; i < laneEnds.length; i++) {
+      if (item.start >= laneEnds[i] - 1e-6) {
+        result.push({ node: item.node, lane: i });
+        laneEnds[i] = item.end;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      result.push({ node: item.node, lane: laneEnds.length });
+      laneEnds.push(item.end);
+    }
+  }
+  return result;
+}
+
+interface CumulativeFundingBarProps {
+  nodes: MapNode[];
+  typeCEnabled: boolean;
+}
+
+function CumulativeFundingBar({ nodes, typeCEnabled }: CumulativeFundingBarProps) {
+  const color = LANE_COLOR["funding"];
+  const packed = useMemo(() => packFundingLanes(nodes, typeCEnabled), [nodes, typeCEnabled]);
+  const laneCount = Math.max(1, ...packed.map((p) => p.lane + 1));
+  const totalHeight = laneCount * SUB_ROW_H + 12;
+
+  return (
+    <div
+      className="relative border-b border-ws-highest/20 flex items-stretch bg-ws-highest/[0.03]"
+      style={{ minHeight: totalHeight }}
+    >
+      <div className="shrink-0 flex items-center gap-2 px-3 z-10 py-2.5" style={{ width: LABEL_W }}>
+        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+        <span className="font-label text-[10px] text-ws-text/70 truncate font-semibold">Cumulative</span>
+        <span className="ml-auto font-label text-[7.5px] text-ws-text/30 shrink-0 bg-ws-high px-1 rounded-sm">all funding</span>
+      </div>
+      <div className="relative flex-1" style={{ minWidth: Q_COUNT * Q_W }}>
+        {[0, 1, 2, 3].map((q) => (
+          <div key={q} className="absolute top-0 bottom-0 border-l border-ws-highest/12" style={{ left: q * Q_W }} />
+        ))}
+        {packed.map(({ node, lane }) => {
+          const left = getBarLeft(node, typeCEnabled);
+          const width = Math.max(node.ganttDuration * Q_W, 24);
+          const isGap = node.ganttIsGap;
+          return (
+            <div
+              key={node.id}
+              className="absolute rounded-md flex items-center justify-center px-2 overflow-hidden"
+              style={{
+                left,
+                width,
+                top: lane * SUB_ROW_H + 5,
+                height: SUB_ROW_H - 4,
+                // Gap renders as a lighter, solid shade of the funding color (not a warning)
+                backgroundColor: isGap ? color + "38" : color + "cc",
+                border: `1px solid ${isGap ? color + "55" : color}`,
+                boxShadow: isGap ? "none" : `0 1px 3px ${color}22`,
+              }}
+            >
+              <span
+                className="font-label text-[8.5px] font-semibold truncate text-center"
+                style={{ color: isGap ? "#166534" : "rgba(255,255,255,0.94)" }}
+              >
+                {node.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Stage lane block ─────────────────────────────────────────────────────────
 
 interface LaneGroupProps {
@@ -241,6 +337,8 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
   const envNode    = NODES.find((n) => n.ganttIsLongBar);
   const gapNode    = allNodes.find((n) => n.ganttIsGap);
   const fundingNodes = allNodes.filter((n) => n.lane === "funding" && !n.ganttIsGap);
+  // All funding nodes including gap, for the cumulative summary row
+  const allFundingNodes = NODES.filter((n) => n.lane === "funding");
 
   return (
     <div className="flex-1 overflow-auto" style={{ backgroundColor: "var(--color-ws-bg)" }}>
@@ -283,6 +381,7 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
 
         {/* Funding lane */}
         <LaneGroup laneId="funding">
+          <CumulativeFundingBar nodes={allFundingNodes} typeCEnabled={typeCEnabled} />
           {fundingNodes.map((node) => <GanttRow key={node.id} node={node} typeCEnabled={typeCEnabled} />)}
           {gapNode && <GapBar node={gapNode} />}
         </LaneGroup>

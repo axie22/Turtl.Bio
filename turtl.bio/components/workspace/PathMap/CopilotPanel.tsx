@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { NODES, COPILOT_RESPONSE } from "./data";
+import { NODES, PROGRAM_DOCS, NODE_CONTEXT_DOCS, NODE_DOC_MAP, COPILOT_RESPONSE } from "./data";
 
 const NODE_QUESTIONS: Record<string, string> = {
   "END-01": "Does our Yucatan pig colonization data satisfy FDA's persistence expectation for LBP INDs per the 2022 draft guidance?",
@@ -172,18 +172,51 @@ export function CopilotPanel({
           <p className="font-label text-[10px] text-ws-text/25 italic">
             Click nodes on the map to load as context
           </p>
-        ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {selectedNodeObjects.map((n) => (
-              <span
-                key={n.id}
-                className="inline-flex items-center gap-1 font-label text-[9px] px-1.5 py-0.5 bg-ws-teal/10 border border-ws-teal/20 text-ws-teal rounded-sm"
-              >
-                {n.id} · {n.label}
-              </span>
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          // Collect union of relevant docs across all selected nodes
+          const docIds = new Set(
+            selectedNodeObjects.flatMap(
+              (n) => NODE_CONTEXT_DOCS[n.id] ?? (NODE_DOC_MAP[n.id] ? [NODE_DOC_MAP[n.id]] : [])
+            )
+          );
+          const contextDocs = PROGRAM_DOCS.filter((d) => docIds.has(d.id));
+          return (
+            <div className="space-y-2">
+              {/* Node name chips */}
+              <div className="flex flex-wrap gap-1">
+                {selectedNodeObjects.map((n) => (
+                  <span
+                    key={n.id}
+                    className="inline-flex items-center gap-1 font-label text-[9px] px-1.5 py-0.5 bg-ws-teal/10 border border-ws-teal/20 text-ws-teal rounded-sm"
+                  >
+                    {n.label}
+                  </span>
+                ))}
+              </div>
+              {/* Relevant docs list */}
+              <div className="space-y-0.5">
+                {contextDocs.map((doc) => (
+                  <div key={doc.id} className="flex items-center gap-2 py-1 rounded-sm hover:bg-ws-bg transition-colors px-1 -mx-1 cursor-default">
+                    <span
+                      className="material-symbols-outlined text-[18px] shrink-0"
+                      style={{ color: doc.color }}
+                    >
+                      {doc.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="font-label text-[9.5px] text-ws-text/70 truncate leading-tight">
+                        {doc.filename}
+                      </div>
+                      <div className="font-label text-[8px] text-ws-text/30 truncate">
+                        {doc.tags[0]}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Query input */}

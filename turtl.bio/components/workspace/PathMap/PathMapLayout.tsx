@@ -16,7 +16,6 @@ import {
 } from "./data";
 
 type ViewMode = "graph" | "gantt";
-type NavTab = "explorer" | "path-map" | "regulatory-ai";
 // Main area tab: "map" is the pinned graph/gantt tab; anything else is a doc ID
 type MainTab = "map" | string;
 
@@ -120,43 +119,14 @@ function ScenarioDropdown({ typeCEnabled, onToggle }: ScenarioDropdownProps) {
 // ─── Top Nav ─────────────────────────────────────────────────────────────────
 
 interface TopNavProps {
-  activeTab: NavTab;
-  setActiveTab: (t: NavTab) => void;
   typeCEnabled: boolean;
   onToggleTypeC: () => void;
-  onNavigate?: (view: string) => void;
 }
 
-function TopNav({ activeTab, setActiveTab, typeCEnabled, onToggleTypeC, onNavigate }: TopNavProps) {
-  const tabs: { id: NavTab; label: string }[] = [
-    { id: "explorer", label: "Explorer" },
-    { id: "path-map", label: "Path Map" },
-    { id: "regulatory-ai", label: "Regulatory AI" },
-  ];
-  const handleTabClick = (tab: { id: NavTab }) => {
-    if (tab.id === "path-map") setActiveTab(tab.id);
-    else onNavigate?.(tab.id);
-  };
+function TopNav({ typeCEnabled, onToggleTypeC }: TopNavProps) {
   return (
     <header className="h-11 bg-ws-mid border-b border-ws-highest/40 flex items-center justify-between px-4 shrink-0 z-50">
-      <div className="flex items-center gap-6">
-        <span className="text-base font-black text-ws-teal font-headline uppercase tracking-wider">Turtl.Bio</span>
-        <nav className="flex items-center gap-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleTabClick(tab)}
-              className={`px-3 py-1.5 font-label text-[11px] font-medium rounded-sm transition-colors ${
-                activeTab === tab.id
-                  ? "text-ws-teal bg-ws-teal/10"
-                  : "text-ws-text/50 hover:text-ws-text/80 hover:bg-ws-highest/40"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <span className="text-base font-black text-ws-teal font-headline uppercase tracking-wider">Turtl.Bio</span>
       <div className="flex items-center gap-3">
         <div className="hidden lg:flex items-center bg-ws-lowest px-2.5 py-1.5 rounded-sm border border-ws-outline-dim/20">
           <span className="material-symbols-outlined text-ws-text/30 text-[14px] mr-1.5">search</span>
@@ -181,49 +151,41 @@ function TopNav({ activeTab, setActiveTab, typeCEnabled, onToggleTypeC, onNaviga
   );
 }
 
-// ─── Sub-toolbar (only on Map tab) ───────────────────────────────────────────
+// ─── Map view bar (inside tab content — toggle + legend) ─────────────────────
 
-interface SubToolbarProps {
+interface MapViewBarProps {
   viewMode: ViewMode;
   setViewMode: (m: ViewMode) => void;
 }
 
-function SubToolbar({ viewMode, setViewMode }: SubToolbarProps) {
+function MapViewBar({ viewMode, setViewMode }: MapViewBarProps) {
   return (
     <div className="h-9 bg-ws-low border-b border-ws-highest/20 flex items-center justify-between px-4 shrink-0">
-      <div className="flex items-center gap-1">
-        <div className="flex items-center bg-ws-lowest border border-ws-highest/30 rounded-sm mr-3">
-          <button
-            onClick={() => setViewMode("gantt")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 font-label text-[10px] rounded-l-sm transition-colors ${viewMode === "gantt" ? "bg-ws-teal/15 text-ws-teal" : "text-ws-text/40 hover:text-ws-text/70"}`}
-          >
-            <span className="material-symbols-outlined !text-[12px]">view_timeline</span>
-            Gantt
-          </button>
-          <div className="w-px h-4 bg-ws-highest/40" />
-          <button
-            onClick={() => setViewMode("graph")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 font-label text-[10px] rounded-r-sm transition-colors ${viewMode === "graph" ? "bg-ws-teal/15 text-ws-teal" : "text-ws-text/40 hover:text-ws-text/70"}`}
-          >
-            <span className="material-symbols-outlined !text-[12px]">schema</span>
-            Graph
-          </button>
-        </div>
-        <button className="text-ws-text/30 hover:text-ws-text/60 transition-colors p-1">
-          <span className="material-symbols-outlined text-[16px]">refresh</span>
+      <div className="flex items-center bg-ws-lowest border border-ws-highest/30 rounded-sm">
+        <button
+          onClick={() => setViewMode("gantt")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 font-label text-[10px] rounded-l-sm transition-colors ${viewMode === "gantt" ? "bg-ws-teal/15 text-ws-teal" : "text-ws-text/40 hover:text-ws-text/70"}`}
+        >
+          <span className="material-symbols-outlined !text-[12px]">view_timeline</span>
+          Gantt
         </button>
-        <div className="w-px h-4 bg-ws-highest/30 mx-2" />
-        {["Group by", "Filter", "Fields", "Links"].map((label) => (
-          <button key={label} className="font-label text-[10px] text-ws-text/35 hover:text-ws-text/65 px-2 py-1 hover:bg-ws-highest/30 rounded-sm transition-colors flex items-center gap-1">
-            <span className="material-symbols-outlined !text-[11px]">
-              {label === "Group by" ? "layers" : label === "Filter" ? "filter_list" : label === "Fields" ? "view_column" : "link"}
-            </span>
-            {label}
-          </button>
-        ))}
+        <div className="w-px h-4 bg-ws-highest/40" />
+        <button
+          onClick={() => setViewMode("graph")}
+          className={`flex items-center gap-1.5 px-3 py-1.5 font-label text-[10px] rounded-r-sm transition-colors ${viewMode === "graph" ? "bg-ws-teal/15 text-ws-teal" : "text-ws-text/40 hover:text-ws-text/70"}`}
+        >
+          <span className="material-symbols-outlined !text-[12px]">schema</span>
+          Graph
+        </button>
       </div>
       <div className="flex items-center gap-3">
-        {[{ color: "#60a5fa", label: "FDA" }, { color: "#54dcbc", label: "study" }, { color: "#22c55e", label: "Funding" }, { color: "#a78bfa", label: "Optional" }, { color: "#94a3b8", label: "dependency" }].map((item) => (
+        {[
+          { color: "#60a5fa", label: "FDA" },
+          { color: "#54dcbc", label: "study" },
+          { color: "#22c55e", label: "Funding" },
+          { color: "#a78bfa", label: "Optional" },
+          { color: "#94a3b8", label: "dependency" },
+        ].map((item) => (
           <div key={item.label} className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
             <span className="font-label text-[9px] text-ws-text/30">{item.label}</span>
@@ -363,26 +325,53 @@ function TabBar({ activeTab, openDocs, onSelectTab, onCloseDoc }: TabBarProps) {
 
 // ─── Activity Bar ────────────────────────────────────────────────────────────
 
-function ActivityBar() {
+type ActivityIcon = "files" | "map" | "search" | "history";
+
+interface ActivityBarProps {
+  active: ActivityIcon;
+  onSelect: (id: ActivityIcon) => void;
+}
+
+function ActivityBar({ active, onSelect }: ActivityBarProps) {
+  const items: { icon: string; id: ActivityIcon; label: string }[] = [
+    { icon: "description", id: "files", label: "Files" },
+    { icon: "account_tree", id: "map", label: "Path Map" },
+    { icon: "manage_search", id: "search", label: "Search" },
+    { icon: "history", id: "history", label: "History" },
+  ];
   return (
-    <aside className="w-10 bg-ws-lowest border-r border-ws-highest/20 flex flex-col items-center py-3 gap-5 shrink-0">
-      {[
-        { icon: "description", label: "Files" },
-        { icon: "account_tree", label: "Map" },
-        { icon: "manage_search", label: "Search" },
-        { icon: "history", label: "History" },
-      ].map((item) => (
-        <button key={item.label} title={item.label} className="text-ws-text/25 hover:text-ws-text/60 transition-colors">
-          <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-        </button>
-      ))}
+    <aside className="w-10 bg-ws-lowest border-r border-ws-highest/20 flex flex-col items-center py-3 shrink-0">
+      <div className="flex flex-col items-center gap-1 w-full">
+        {items.map((item) => {
+          const isActive = item.id === active;
+          return (
+            <button
+              key={item.id}
+              title={item.label}
+              onClick={() => onSelect(item.id)}
+              className={`w-full flex justify-center py-2.5 transition-colors ${
+                isActive
+                  ? "text-ws-teal border-l-2 border-ws-teal bg-ws-teal/5"
+                  : "text-ws-text/25 hover:text-ws-text/60 border-l-2 border-transparent"
+              }`}
+            >
+              <span
+                className="material-symbols-outlined text-[18px]"
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+              >
+                {item.icon}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </aside>
   );
 }
 
 // ─── Breadcrumb ──────────────────────────────────────────────────────────────
 
-function MapTitleBar() {
+function MapTitleBar({ right }: { right?: React.ReactNode }) {
   return (
     <div className="h-8 bg-ws-bg border-b border-ws-highest/10 flex items-center px-4 gap-3 shrink-0">
       <span className="font-label text-[9px] uppercase tracking-widest text-ws-text/25">Generated Map</span>
@@ -391,6 +380,7 @@ function MapTitleBar() {
       <span className="font-label text-[9px] px-1.5 py-0.5 rounded-sm" style={{ backgroundColor: "rgba(84,220,188,0.08)", color: "rgba(84,220,188,0.5)" }}>
         auto-plotted from TPP + submission docs
       </span>
+      {right && <div className="ml-auto">{right}</div>}
     </div>
   );
 }
@@ -445,19 +435,25 @@ function StatusBar({ viewMode, typeCEnabled, activatedCount, nodeCount, edgeCoun
 interface PathMapLayoutProps {
   activeView?: string;
   onNavigate?: (view: string) => void;
+  embedded?: boolean;
 }
 
-export function PathMapLayout({ onNavigate }: PathMapLayoutProps) {
-  const [activeNavTab, setActiveNavTab] = useState<NavTab>("path-map");
+export function PathMapLayout({ onNavigate, embedded = false }: PathMapLayoutProps) {
+  const [activeActivityIcon, setActiveActivityIcon] = useState<ActivityIcon>("map");
   const [viewMode, setViewMode] = useState<ViewMode>("gantt");
   const [typeCEnabled, setTypeCEnabled] = useState(false);
   const [activatedOptionalNodes, setActivatedOptionalNodes] = useState<Set<string>>(new Set());
   const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set());
   const [copilotCollapsed, setCopilotCollapsed] = useState(false);
-
-  // Tab system for main area
   const [activeMainTab, setActiveMainTab] = useState<MainTab>("map");
   const [openDocIds, setOpenDocIds] = useState<string[]>([]);
+
+  const handleToggleTypeC = useCallback(() => {
+    setTypeCEnabled((v) => {
+      if (!v) setActivatedOptionalNodes(new Set());
+      return !v;
+    });
+  }, []);
 
   const openDoc = useCallback((docId: string) => {
     setOpenDocIds((prev) => prev.includes(docId) ? prev : [...prev, docId]);
@@ -465,39 +461,24 @@ export function PathMapLayout({ onNavigate }: PathMapLayoutProps) {
   }, []);
 
   const closeDoc = useCallback((docId: string) => {
-    setOpenDocIds((prev) => {
-      const next = prev.filter((id) => id !== docId);
-      return next;
-    });
+    setOpenDocIds((prev) => prev.filter((id) => id !== docId));
     setActiveMainTab((prev) => (prev === docId ? "map" : prev));
   }, []);
 
   const handleNodeClick = useCallback((id: string) => {
-    // Select node for copilot context
     setSelectedNodes((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
     if (copilotCollapsed) setCopilotCollapsed(false);
-
-    // Open the relevant document for this node
     const docId = NODE_DOC_MAP[id];
     if (docId) openDoc(docId);
   }, [copilotCollapsed, openDoc]);
 
   const handleActivateNode = useCallback((id: string) => {
-    setActivatedOptionalNodes((prev) => {
-      const next = new Set(prev);
-      next.add(id);
-      return next;
-    });
-    // Also select it and open its doc
-    setSelectedNodes((prev) => {
-      const next = new Set(prev);
-      next.add(id);
-      return next;
-    });
+    setActivatedOptionalNodes((prev) => { const next = new Set(prev); next.add(id); return next; });
+    setSelectedNodes((prev) => { const next = new Set(prev); next.add(id); return next; });
     const docId = NODE_DOC_MAP[id];
     if (docId) openDoc(docId);
   }, [openDoc]);
@@ -511,34 +492,17 @@ export function PathMapLayout({ onNavigate }: PathMapLayoutProps) {
 
   const activeDoc = openDocs.find((d) => d.id === activeMainTab) ?? null;
 
-  return (
-    <div className="h-screen w-screen bg-ws-bg text-ws-text flex flex-col overflow-hidden selection:bg-ws-teal/30">
-      <TopNav
-        activeTab={activeNavTab}
-        setActiveTab={setActiveNavTab}
-        typeCEnabled={typeCEnabled}
-        onToggleTypeC={() => {
-          setTypeCEnabled((v) => !v);
-          if (!typeCEnabled) {
-            // Activating type C via toggle — clear individual activations (toggle takes precedence)
-            setActivatedOptionalNodes(new Set());
-          }
-        }}
-        onNavigate={onNavigate}
+  // ── Shared inner content ──────────────────────────────────────────────────
+  const innerContent = (
+    <>
+      <MapTitleBar
+        right={embedded
+          ? <ScenarioDropdown typeCEnabled={typeCEnabled} onToggle={handleToggleTypeC} />
+          : undefined}
       />
-
-      {/* Only show sub-toolbar when on the map tab */}
-      {activeMainTab === "map" && (
-        <SubToolbar viewMode={viewMode} setViewMode={setViewMode} />
-      )}
-
-      <MapTitleBar />
-
       <div className="flex flex-1 overflow-hidden">
-        <ActivityBar />
+        {!embedded && <ActivityBar active={activeActivityIcon} onSelect={setActiveActivityIcon} />}
         <FileTree activeDocId={activeMainTab !== "map" ? activeMainTab : null} onOpenDoc={openDoc} />
-
-        {/* Main content area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <TabBar
             activeTab={activeMainTab}
@@ -546,21 +510,22 @@ export function PathMapLayout({ onNavigate }: PathMapLayoutProps) {
             onSelectTab={setActiveMainTab}
             onCloseDoc={closeDoc}
           />
-
-          {/* Tab content */}
           <div className="flex-1 overflow-hidden flex flex-col">
             {activeMainTab === "map" ? (
-              viewMode === "graph" ? (
-                <GraphView
-                  typeCEnabled={typeCEnabled}
-                  activatedOptionalNodes={activatedOptionalNodes}
-                  onActivateNode={handleActivateNode}
-                  selectedNodes={selectedNodes}
-                  onNodeClick={handleNodeClick}
-                />
-              ) : (
-                <GanttView typeCEnabled={typeCEnabled} />
-              )
+              <>
+                <MapViewBar viewMode={viewMode} setViewMode={setViewMode} />
+                {viewMode === "graph" ? (
+                  <GraphView
+                    typeCEnabled={typeCEnabled}
+                    activatedOptionalNodes={activatedOptionalNodes}
+                    onActivateNode={handleActivateNode}
+                    selectedNodes={selectedNodes}
+                    onNodeClick={handleNodeClick}
+                  />
+                ) : (
+                  <GanttView typeCEnabled={typeCEnabled} />
+                )}
+              </>
             ) : activeDoc ? (
               <DocumentView
                 doc={activeDoc}
@@ -569,14 +534,29 @@ export function PathMapLayout({ onNavigate }: PathMapLayoutProps) {
             ) : null}
           </div>
         </div>
-
         <CopilotPanel
           selectedNodes={selectedNodes}
           collapsed={copilotCollapsed}
           onToggle={() => setCopilotCollapsed((v) => !v)}
         />
       </div>
+    </>
+  );
 
+  // ── Embedded mode: no outer shell, fills whatever container it's in ────────
+  if (embedded) {
+    return (
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {innerContent}
+      </div>
+    );
+  }
+
+  // ── Standalone mode: full-screen with TopNav + ActivityBar + StatusBar ─────
+  return (
+    <div className="h-screen w-screen bg-ws-bg text-ws-text flex flex-col overflow-hidden selection:bg-ws-teal/30">
+      <TopNav typeCEnabled={typeCEnabled} onToggleTypeC={handleToggleTypeC} />
+      {innerContent}
       <StatusBar
         viewMode={viewMode}
         typeCEnabled={typeCEnabled}

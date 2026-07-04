@@ -35,29 +35,12 @@ const DEMO_DOCS = [
   },
 ];
 
-interface NavTabsProps {
-  onNavigate: (view: string) => void;
-}
-
-function NavBar({ onNavigate }: NavTabsProps) {
+function NavBar() {
   return (
     <header className="h-11 bg-ws-mid border-b border-ws-highest/40 flex items-center justify-between px-4 shrink-0 z-50">
-      <div className="flex items-center gap-6">
-        <span className="text-base font-black text-ws-teal font-headline uppercase tracking-wider">
-          Turtl.Bio
-        </span>
-        <nav className="flex items-center gap-1">
-          {["explorer", "path-map", "regulatory-ai"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => onNavigate(tab)}
-              className="px-3 py-1.5 font-label text-[11px] font-medium rounded-sm transition-colors text-ws-text/50 hover:text-ws-text/80 hover:bg-ws-highest/40 capitalize"
-            >
-              {tab === "path-map" ? "Path Map" : tab === "regulatory-ai" ? "Regulatory AI" : "Explorer"}
-            </button>
-          ))}
-        </nav>
-      </div>
+      <span className="text-base font-black text-ws-teal font-headline uppercase tracking-wider">
+        Turtl.Bio
+      </span>
       <div className="flex items-center gap-2">
         <button className="text-ws-text/30 hover:text-ws-text/70 transition-colors">
           <span className="material-symbols-outlined text-[18px]">settings</span>
@@ -100,7 +83,7 @@ export function UploadPage({ onAnalyze, onNavigate }: UploadPageProps) {
 
   return (
     <div className="h-screen w-screen bg-ws-bg text-ws-text flex flex-col overflow-hidden">
-      <NavBar onNavigate={onNavigate} />
+      <NavBar />
 
       {/* Breadcrumb */}
       <div className="h-8 bg-ws-low border-b border-ws-highest/10 flex items-center px-4 gap-3 shrink-0">
