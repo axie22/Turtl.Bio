@@ -138,7 +138,7 @@ export function CopilotPanel({
   }
 
   return (
-    <aside className="w-[296px] shrink-0 bg-ws-lowest border-l border-ws-highest/30 flex flex-col">
+    <aside className="w-[296px] shrink-0 bg-ws-lowest border-l border-ws-highest/30 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="h-9 px-3 flex items-center justify-between border-b border-ws-highest/20 shrink-0">
         <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export function CopilotPanel({
                 ))}
               </div>
               {/* Relevant docs list */}
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 max-h-[108px] overflow-y-auto ws-scrollbar">
                 {contextDocs.map((doc) => (
                   <div key={doc.id} className="flex items-center gap-2 py-1 rounded-sm hover:bg-ws-bg transition-colors px-1 -mx-1 cursor-default">
                     <span
@@ -249,6 +249,9 @@ export function CopilotPanel({
         </button>
       </div>
 
+      {/* Scrollable body — everything below the pinned query scrolls together */}
+      <div className="flex-1 min-h-0 overflow-y-auto ws-scrollbar flex flex-col">
+
       {/* Loading steps */}
       {isLoading && (
         <div className="px-3 py-3 border-b border-ws-highest/15 shrink-0">
@@ -289,7 +292,7 @@ export function CopilotPanel({
 
       {/* Response */}
       {hasResponse && (
-        <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-col">
           {/* Tabs */}
           <div className="flex border-b border-ws-highest/20 shrink-0">
             {(["sources", "analysis", "recommendation"] as ResponseTab[]).map((tab) => (
@@ -326,7 +329,7 @@ export function CopilotPanel({
           </div>
 
           {/* Tab content */}
-          <div className="flex-1 overflow-y-auto ws-scrollbar p-3">
+          <div className="p-3">
             {activeTab === "analysis" && (
               <div className="space-y-3">
                 {COPILOT_RESPONSE.analysis.split("\n\n").map((para, i) => (
@@ -467,6 +470,7 @@ export function CopilotPanel({
           </div>
         </div>
       )}
+      </div>
     </aside>
   );
 }

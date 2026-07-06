@@ -5,7 +5,6 @@ import {
   MapNode,
   NODES,
   GANTT_QUARTERS,
-  STATUS_CONFIG,
   LANE_COLOR,
 } from "./data";
 
@@ -61,44 +60,6 @@ function EnvAssessBar({ node }: { node: MapNode }) {
           <span className="font-label text-[8.5px] italic" style={{ color: color + "bb" }}>
             Q1 → Q4 · runs in parallel
           </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── RUNWAY RISK gap bar ──────────────────────────────────────────────────────
-
-function GapBar({ node }: { node: MapNode }) {
-  return (
-    <div
-      className="relative border-b border-ws-highest/15 flex items-center"
-      style={{ height: ROW_H }}
-    >
-      <div className="shrink-0 flex items-center gap-2 px-3 z-10" style={{ width: LABEL_W }}>
-        <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-amber-400" />
-        <span className="font-label text-[10px] text-amber-500/70 truncate">{node.label}</span>
-        <span className="ml-auto font-label text-[7.5px] text-amber-400/60 shrink-0 bg-amber-400/10 px-1 rounded-sm">RISK</span>
-      </div>
-      <div className="relative flex-1 h-full" style={{ minWidth: Q_COUNT * Q_W }}>
-        {[0, 1, 2, 3].map((q) => (
-          <div key={q} className="absolute top-0 bottom-0 border-l border-ws-highest/12" style={{ left: q * Q_W }} />
-        ))}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 rounded-sm overflow-hidden"
-          style={{
-            left: (node.ganttStart - 1) * Q_W,
-            width: node.ganttDuration * Q_W,
-            height: ROW_H * 0.58,
-            border: "1px solid rgba(251,191,36,0.5)",
-            backgroundImage:
-              "repeating-linear-gradient(45deg, rgba(251,191,36,0.15) 0px, rgba(251,191,36,0.15) 4px, transparent 4px, transparent 10px)",
-            backgroundColor: "rgba(251,191,36,0.06)",
-          }}
-        >
-          <div className="h-full flex items-center justify-center">
-            <span className="font-label text-[7.5px] text-amber-500/60 font-bold tracking-wider">NO FUNDING</span>
-          </div>
         </div>
       </div>
     </div>
@@ -222,8 +183,8 @@ function CumulativeFundingBar({ nodes, typeCEnabled }: CumulativeFundingBarProps
     >
       <div className="shrink-0 flex items-center gap-2 px-3 z-10 py-2.5" style={{ width: LABEL_W }}>
         <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-        <span className="font-label text-[10px] text-ws-text/70 truncate font-semibold">Cumulative</span>
-        <span className="ml-auto font-label text-[7.5px] text-ws-text/30 shrink-0 bg-ws-high px-1 rounded-sm">all funding</span>
+        <span className="font-label text-[10px] text-ws-text/70 truncate font-semibold">Funding rounds</span>
+        <span className="ml-auto font-label text-[7.5px] text-ws-text/30 shrink-0 bg-ws-high px-1 rounded-sm">cumulative</span>
       </div>
       <div className="relative flex-1" style={{ minWidth: Q_COUNT * Q_W }}>
         {[0, 1, 2, 3].map((q) => (
@@ -231,7 +192,8 @@ function CumulativeFundingBar({ nodes, typeCEnabled }: CumulativeFundingBarProps
         ))}
         {packed.map(({ node, lane }) => {
           const left = getBarLeft(node, typeCEnabled);
-          const width = Math.max(node.ganttDuration * Q_W, 24);
+          // Enforce a minimum width so short items (Series A, Seed close) fit their label
+          const width = Math.max(node.ganttDuration * Q_W, 78);
           const isGap = node.ganttIsGap;
           return (
             <div
@@ -335,9 +297,7 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
   const fdaNodes   = allNodes.filter((n) => n.lane === "fda" && !n.ganttIsLongBar && !n.ganttIsGap);
   const sponsorNodes = allNodes.filter((n) => n.lane === "sponsor" && !n.ganttIsLongBar && !n.ganttIsGap);
   const envNode    = NODES.find((n) => n.ganttIsLongBar);
-  const gapNode    = allNodes.find((n) => n.ganttIsGap);
-  const fundingNodes = allNodes.filter((n) => n.lane === "funding" && !n.ganttIsGap);
-  // All funding nodes including gap, for the cumulative summary row
+  // Funding lane renders as a single stacked/packed timeline of all funding opportunities
   const allFundingNodes = NODES.filter((n) => n.lane === "funding");
 
   return (
@@ -379,11 +339,9 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
           {envNode && <EnvAssessBar node={envNode} />}
         </LaneGroup>
 
-        {/* Funding lane */}
+        {/* Funding lane — single stacked timeline of all funding opportunities */}
         <LaneGroup laneId="funding">
           <CumulativeFundingBar nodes={allFundingNodes} typeCEnabled={typeCEnabled} />
-          {fundingNodes.map((node) => <GanttRow key={node.id} node={node} typeCEnabled={typeCEnabled} />)}
-          {gapNode && <GapBar node={gapNode} />}
         </LaneGroup>
 
       </div>
