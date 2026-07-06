@@ -95,7 +95,7 @@ export const PROGRAM_DOCS: ProgramDoc[] = [
   },
 ];
 
-// Node → primary document mapping
+// Node → primary document mapping (opens in doc tab on click)
 export const NODE_DOC_MAP: Record<string, string> = {
   "END-01":  "doc-nglp",
   "END-02":  "doc-nglp",
@@ -116,6 +116,30 @@ export const NODE_DOC_MAP: Record<string, string> = {
   "FUND-03": "doc-sbir",
   "FUND-04": "doc-tpp",
   "FUND-05": "doc-tpp",
+};
+
+// Node → relevant context documents (shown in copilot Context Nodes panel)
+export const NODE_CONTEXT_DOCS: Record<string, string[]> = {
+  "END-01":   ["doc-nglp", "doc-fda-lbp", "doc-ich-s6"],
+  "END-00":   ["doc-nglp", "doc-fda-lbp"],
+  "END-IP":   ["doc-tpp", "doc-fda-lbp", "doc-ich-s6"],
+  "END-02":   ["doc-nglp", "doc-ich-s6", "doc-fda-lbp"],
+  "END-08":   ["doc-fda-ea", "doc-fda-lbp"],
+  "END-03":   ["doc-fda-lbp", "doc-ich-s6", "doc-nglp"],
+  "END-04":   ["doc-ich-s6", "doc-fda-lbp", "doc-nglp"],
+  "END-07":   ["doc-fda-lbp", "doc-tpp"],
+  "END-GR":   ["doc-ich-s6", "doc-fda-lbp"],
+  "END-BP":   ["doc-tpp", "doc-fda-lbp"],
+  "END-05":   ["doc-fda-lbp", "doc-tpp", "doc-ich-s6"],
+  "END-06":   ["doc-fda-lbp", "doc-ich-s6", "doc-fda-ea"],
+  "END-CP":   ["doc-fda-lbp", "doc-tpp"],
+  "END-0C":   ["doc-fda-lbp", "doc-tpp"],
+  "FUND-01":  ["doc-sbir", "doc-tpp"],
+  "FUND-02":  ["doc-nglp", "doc-tpp"],
+  "FUND-03":  ["doc-sbir", "doc-tpp"],
+  "FUND-04":  ["doc-sbir", "doc-tpp"],
+  "FUND-05":  ["doc-tpp", "doc-sbir"],
+  "FUND-GAP": ["doc-sbir"],
 };
 
 export interface MapEdge {

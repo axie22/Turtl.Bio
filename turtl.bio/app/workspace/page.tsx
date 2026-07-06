@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { WorkspaceLayout } from "@/components/workspace/WorkspaceLayout";
-import { PathMapLayout } from "@/components/workspace/PathMap/PathMapLayout";
 import { UploadPage } from "@/components/workspace/PathMap/UploadPage";
 import { ContextPage } from "@/components/workspace/PathMap/ContextPage";
 
 export type WorkspaceView = "upload" | "context" | "explorer" | "path-map" | "regulatory-ai";
 
 export default function WorkspacePage() {
-  const [view, setView] = useState<WorkspaceView>("upload");
+  const [view, setView] = useState<WorkspaceView>("explorer");
 
   const navigate = (v: string) => setView(v as WorkspaceView);
 
@@ -21,9 +20,6 @@ export default function WorkspacePage() {
     return <ContextPage onGenerate={() => setView("path-map")} onNavigate={navigate} />;
   }
 
-  if (view === "path-map") {
-    return <PathMapLayout activeView={view} onNavigate={navigate} />;
-  }
-
+  // Both "explorer" and "path-map" live inside WorkspaceLayout — PathMap opens embedded
   return <WorkspaceLayout activeView={view} onNavigate={navigate} />;
 }
