@@ -501,7 +501,16 @@ export function PathMapLayout({ onNavigate, embedded = false }: PathMapLayoutPro
           : undefined}
       />
       <div className="flex flex-1 overflow-hidden">
-        {!embedded && <ActivityBar active={activeActivityIcon} onSelect={setActiveActivityIcon} />}
+        {!embedded && (
+          <ActivityBar
+            active={activeActivityIcon}
+            onSelect={(id) => {
+              setActiveActivityIcon(id);
+              // The "map" icon acts as the graph button — focus the graph tab
+              if (id === "map") setActiveMainTab("map");
+            }}
+          />
+        )}
         <FileTree activeDocId={activeMainTab !== "map" ? activeMainTab : null} onOpenDoc={openDoc} />
         <div className="flex-1 flex flex-col overflow-hidden">
           <TabBar
