@@ -371,12 +371,12 @@ export function ContextPage({ onGenerate, onNavigate }: ContextPageProps) {
               {generating ? (
                 <>
                   <span className="material-symbols-outlined text-[14px] animate-spin">refresh</span>
-                  Generating…
+                  Entering…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[14px]">account_tree</span>
-                  Generate Path Map
+                  <span className="material-symbols-outlined text-[14px]">login</span>
+                  Enter Workspace
                 </>
               )}
             </button>
