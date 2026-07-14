@@ -12,6 +12,8 @@ import {
   PROGRAM_DATE,
   PROGRAM_DOCS,
   NODE_DOC_MAP,
+  FILE_TREE,
+  FileTreeNode,
   ProgramDoc,
 } from "./data";
 
@@ -198,71 +200,140 @@ function MapViewBar({ viewMode, setViewMode }: MapViewBarProps) {
 
 // ─── File Tree ────────────────────────────────────────────────────────────────
 
+const DOC_LOOKUP = Object.fromEntries(PROGRAM_DOCS.map((d) => [d.id, d]));
+
+interface FileNodeProps {
+  node: Extract<FileTreeNode, { kind: "file" }>;
+  depth: number;
+  activeDocId: string | null;
+  onOpenDoc: (id: string) => void;
+}
+
+function FileNode({ node, depth, activeDocId, onOpenDoc }: FileNodeProps) {
+  const doc = DOC_LOOKUP[node.docId];
+  if (!doc) return null;
+  const isActive = activeDocId === node.docId;
+
+  return (
+    <button
+      onClick={() => onOpenDoc(node.docId)}
+      className={`w-full flex items-center gap-1.5 py-1 text-left transition-colors border-l-2 ${
+        isActive
+          ? "bg-ws-teal/10 border-ws-teal"
+          : "border-transparent hover:bg-ws-highest/20"
+      }`}
+      style={{ paddingLeft: depth * 10 + 20 }}
+    >
+      <span className="material-symbols-outlined text-[12px] shrink-0" style={{ color: doc.color }}>
+        {doc.icon}
+      </span>
+      <span className={`font-label text-[9px] truncate ${isActive ? "text-ws-teal" : "text-ws-text/60"}`}>
+        {doc.filename}
+      </span>
+    </button>
+  );
+}
+
+interface FolderNodeProps {
+  node: Extract<FileTreeNode, { kind: "folder" }>;
+  depth: number;
+  activeDocId: string | null;
+  onOpenDoc: (id: string) => void;
+}
+
+function FolderNode({ node, depth, activeDocId, onOpenDoc }: FolderNodeProps) {
+  const [open, setOpen] = useState(node.defaultOpen ?? false);
+  const isEmpty = node.children.length === 0;
+
+  return (
+    <div>
+      <button
+        onClick={() => !isEmpty && setOpen((v) => !v)}
+        className={`w-full flex items-center gap-1.5 py-1 text-left transition-colors ${
+          isEmpty ? "cursor-default opacity-60" : "hover:bg-ws-highest/20"
+        }`}
+        style={{ paddingLeft: depth * 10 + 8 }}
+      >
+        <span
+          className={`material-symbols-outlined text-[10px] text-ws-text/30 transition-transform duration-100 ${
+            open && !isEmpty ? "rotate-90" : ""
+          }`}
+        >
+          chevron_right
+        </span>
+        <span className="material-symbols-outlined text-[13px] text-ws-text/40">
+          {open && !isEmpty ? "folder_open" : "folder"}
+        </span>
+        <span className="font-label text-[9px] uppercase tracking-wider text-ws-text/55 truncate">
+          {node.name}
+        </span>
+        {isEmpty && (
+          <span className="font-label text-[8px] text-ws-text/20 ml-1 shrink-0">(empty)</span>
+        )}
+      </button>
+      {open && !isEmpty && (
+        <div>
+          {node.children.map((child, i) =>
+            child.kind === "folder" ? (
+              <FolderNode
+                key={i}
+                node={child}
+                depth={depth + 1}
+                activeDocId={activeDocId}
+                onOpenDoc={onOpenDoc}
+              />
+            ) : (
+              <FileNode
+                key={i}
+                node={child}
+                depth={depth + 1}
+                activeDocId={activeDocId}
+                onOpenDoc={onOpenDoc}
+              />
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface FileTreeProps {
   activeDocId: string | null;
   onOpenDoc: (docId: string) => void;
 }
 
 function FileTree({ activeDocId, onOpenDoc }: FileTreeProps) {
-  const programDocs = PROGRAM_DOCS.filter((d) => d.category === "program");
-  const guidanceDocs = PROGRAM_DOCS.filter((d) => d.category === "guidance");
-
   return (
-    <div className="w-52 bg-ws-low border-r border-ws-highest/20 flex flex-col overflow-hidden shrink-0">
-      {/* Program files */}
-      <div className="px-3 py-2 border-b border-ws-highest/15">
+    <div className="w-64 bg-ws-low border-r border-ws-highest/20 flex flex-col overflow-hidden shrink-0">
+      <div className="px-3 py-2 border-b border-ws-highest/15 shrink-0">
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[11px] text-ws-text/30">folder_open</span>
-          <span className="font-label text-[8.5px] uppercase tracking-widest text-ws-text/35">Program Files</span>
+          <span className="material-symbols-outlined text-[11px] text-ws-text/30">account_tree</span>
+          <span className="font-label text-[8.5px] uppercase tracking-widest text-ws-text/35">END-101</span>
+          <span className="font-label text-[8px] text-ws-text/20 ml-0.5">PKU · CBER</span>
         </div>
       </div>
-      <div className="py-0.5">
-        {programDocs.map((doc) => (
-          <button
-            key={doc.id}
-            onClick={() => onOpenDoc(doc.id)}
-            className={`w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors ${
-              activeDocId === doc.id
-                ? "bg-ws-teal/10 border-l-2 border-ws-teal"
-                : "hover:bg-ws-highest/30 border-l-2 border-transparent"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[13px] shrink-0" style={{ color: doc.color }}>
-              {doc.icon}
-            </span>
-            <div className="min-w-0">
-              <div className="font-label text-[9.5px] text-ws-text/75 truncate leading-tight">{doc.filename}</div>
-              <div className="font-label text-[8px] text-ws-text/30 truncate">{doc.label}</div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* FDA Guidance */}
-      <div className="px-3 py-2 border-t border-b border-ws-highest/15">
-        <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[11px] text-ws-text/30">gavel</span>
-          <span className="font-label text-[8.5px] uppercase tracking-widest text-ws-text/35">FDA Guidance</span>
-        </div>
-      </div>
-      <div className="py-0.5 flex-1 overflow-auto">
-        {guidanceDocs.map((doc) => (
-          <button
-            key={doc.id}
-            onClick={() => onOpenDoc(doc.id)}
-            className={`w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors ${
-              activeDocId === doc.id
-                ? "bg-ws-teal/10 border-l-2 border-ws-teal"
-                : "hover:bg-ws-highest/30 border-l-2 border-transparent"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[13px] shrink-0 text-indigo-400">{doc.icon}</span>
-            <div className="min-w-0">
-              <div className="font-label text-[9.5px] text-ws-text/65 truncate leading-tight">{doc.filename}</div>
-              <div className="font-label text-[8px] text-ws-text/30 truncate">{doc.tags[0]}</div>
-            </div>
-          </button>
-        ))}
+      <div className="flex-1 overflow-y-auto py-0.5">
+        {FILE_TREE.kind === "folder" &&
+          FILE_TREE.children.map((child, i) =>
+            child.kind === "folder" ? (
+              <FolderNode
+                key={i}
+                node={child}
+                depth={0}
+                activeDocId={activeDocId}
+                onOpenDoc={onOpenDoc}
+              />
+            ) : (
+              <FileNode
+                key={i}
+                node={child}
+                depth={0}
+                activeDocId={activeDocId}
+                onOpenDoc={onOpenDoc}
+              />
+            )
+          )}
       </div>
     </div>
   );
