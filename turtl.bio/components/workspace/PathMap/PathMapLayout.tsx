@@ -273,10 +273,10 @@ function FolderNode({ node, depth, activeDocId, onOpenDoc }: FolderNodeProps) {
       </button>
       {open && !isEmpty && (
         <div>
-          {node.children.map((child, i) =>
+          {node.children.map((child) =>
             child.kind === "folder" ? (
               <FolderNode
-                key={i}
+                key={child.name}
                 node={child}
                 depth={depth + 1}
                 activeDocId={activeDocId}
@@ -284,7 +284,7 @@ function FolderNode({ node, depth, activeDocId, onOpenDoc }: FolderNodeProps) {
               />
             ) : (
               <FileNode
-                key={i}
+                key={child.docId}
                 node={child}
                 depth={depth + 1}
                 activeDocId={activeDocId}
@@ -315,10 +315,10 @@ function FileTree({ activeDocId, onOpenDoc }: FileTreeProps) {
       </div>
       <div className="flex-1 overflow-y-auto py-0.5">
         {FILE_TREE.kind === "folder" &&
-          FILE_TREE.children.map((child, i) =>
+          FILE_TREE.children.map((child) =>
             child.kind === "folder" ? (
               <FolderNode
-                key={i}
+                key={child.name}
                 node={child}
                 depth={0}
                 activeDocId={activeDocId}
@@ -326,7 +326,7 @@ function FileTree({ activeDocId, onOpenDoc }: FileTreeProps) {
               />
             ) : (
               <FileNode
-                key={i}
+                key={child.docId}
                 node={child}
                 depth={0}
                 activeDocId={activeDocId}
