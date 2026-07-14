@@ -298,7 +298,7 @@ export function GanttView({ typeCEnabled }: GanttViewProps) {
   const sponsorNodes = allNodes.filter((n) => n.lane === "sponsor" && !n.ganttIsLongBar && !n.ganttIsGap);
   const envNode    = NODES.find((n) => n.ganttIsLongBar);
   // Funding lane renders as a single stacked/packed timeline of all funding opportunities
-  const allFundingNodes = NODES.filter((n) => n.lane === "funding");
+  const allFundingNodes = allNodes.filter((n) => n.lane === "funding");
 
   return (
     <div className="flex-1 overflow-auto" style={{ backgroundColor: "var(--color-ws-bg)" }}>

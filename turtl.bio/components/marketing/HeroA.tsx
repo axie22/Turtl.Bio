@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ReasoningChain } from "@/components/marketing/ReasoningChain";
-import { Section, MetaStrip } from "@/components/marketing/primitives";
+import { Section } from "@/components/marketing/primitives";
 
 const RA_OPTIONS = [
   { value: "no-ra", label: "No dedicated RA hire yet" },
@@ -106,18 +105,6 @@ export function HeroA() {
         </div>
       </div>
 
-      {/* Reasoning chain — the hero's anchor visual */}
-      <div className="mt-16 md:mt-20">
-        <MetaStrip
-          items={[
-            { label: "Modality", value: "small molecule" },
-            { label: "Indication", value: "prostate cancer" },
-            { label: "Population", value: "male only" },
-            { label: "Stage", value: "pre-IND" },
-          ]}
-        />
-        <ReasoningChain />
-      </div>
     </Section>
   );
 }
