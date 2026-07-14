@@ -29,7 +29,7 @@ export interface ProgramDoc {
   icon: string;
   color: string;
   tags: string[];
-  category: "program" | "guidance";
+  category: "program" | "guidance" | "regulatory" | "cmc";
 }
 
 export const PROGRAM_DOCS: ProgramDoc[] = [
@@ -93,6 +93,182 @@ export const PROGRAM_DOCS: ProgramDoc[] = [
     tags: ["FDA, 2015", "Guidance"],
     category: "guidance",
   },
+  // ── REGULATORY › US › Communications TO FDA ──────────────────────────────
+  {
+    id: "doc-interact-req",
+    filename: "INTERACT_meeting_request.pdf",
+    label: "INTERACT Meeting Request",
+    size: "84 KB",
+    icon: "send",
+    color: "#2563eb",
+    tags: ["CBER/OTAT", "informal advice", "pre-IND"],
+    category: "regulatory",
+  },
+  {
+    id: "doc-interact-pkg",
+    filename: "INTERACT_briefing_package.pdf",
+    label: "INTERACT Briefing Package",
+    size: "1.2 MB",
+    icon: "folder_zip",
+    color: "#2563eb",
+    tags: ["YOUR COLONIZATION DATA", "tox species", "study design"],
+    category: "regulatory",
+  },
+  {
+    id: "doc-preind-req",
+    filename: "preIND_TypeB_meeting_request_draft.docx",
+    label: "Type B Pre-IND Meeting Request",
+    size: "62 KB",
+    icon: "article",
+    color: "#2563eb",
+    tags: ["Type B", "pre-IND", "draft"],
+    category: "regulatory",
+  },
+  {
+    id: "doc-preind-brief",
+    filename: "preIND_briefing_document_draft.docx",
+    label: "Pre-IND Briefing Document",
+    size: "340 KB",
+    icon: "article",
+    color: "#2563eb",
+    tags: ["nonclinical plan", "CMC overview", "draft"],
+    category: "regulatory",
+  },
+  {
+    id: "doc-odd-req",
+    filename: "ODD_designation_request_draft.docx",
+    label: "Orphan Drug Designation Request",
+    size: "118 KB",
+    icon: "article",
+    color: "#2563eb",
+    tags: ["ODD", "PKU", "rare disease"],
+    category: "regulatory",
+  },
+  // ── REGULATORY › US › Communications FROM FDA ─────────────────────────────
+  {
+    id: "doc-fda-interact-resp",
+    filename: "FDA_INTERACT_written_responses.pdf",
+    label: "FDA INTERACT Written Responses",
+    size: "210 KB",
+    icon: "mark_email_read",
+    color: "#2563eb",
+    tags: ["FDA feedback", "tox species", "CBER"],
+    category: "regulatory",
+  },
+  // ── REGULATORY › GUIDANCE (new) ──────────────────────────────────────────
+  {
+    id: "doc-ich-m3",
+    filename: "ICH_M3_R2_Nonclinical_Timing.pdf",
+    label: "Nonclinical Safety Studies — Timing for Human Trials",
+    size: "176 KB",
+    icon: "gavel",
+    color: "#6366f1",
+    tags: ["ICH, 2009", "Guidance"],
+    category: "guidance",
+  },
+  {
+    id: "doc-fda-cgmp",
+    filename: "FDA_Phase1_cGMP_Guidance.pdf",
+    label: "cGMP for Phase 1 Investigational Drugs",
+    size: "132 KB",
+    icon: "gavel",
+    color: "#6366f1",
+    tags: ["FDA, 2008", "Guidance"],
+    category: "guidance",
+  },
+  // ── CMC ───────────────────────────────────────────────────────────────────
+  {
+    id: "doc-mcb",
+    filename: "strain_characterization_MCB.pdf",
+    label: "Strain Characterization — Master Cell Bank",
+    size: "284 KB",
+    icon: "biotech",
+    color: "#16a34a",
+    tags: ["MCB", "strain identity", "purity"],
+    category: "cmc",
+  },
+  {
+    id: "doc-ngs",
+    filename: "genetic_stability_NGS_report.pdf",
+    label: "Genetic Stability NGS Report",
+    size: "1.8 MB",
+    icon: "biotech",
+    color: "#16a34a",
+    tags: ["NGS", "insert retention", "passage stability"],
+    category: "cmc",
+  },
+  {
+    id: "doc-potency",
+    filename: "potency_assay_CFU_viability.xlsx",
+    label: "Potency Assay — CFU & Viability",
+    size: "92 KB",
+    icon: "table_chart",
+    color: "#16a34a",
+    tags: ["CFU", "viability", "PAL activity"],
+    category: "cmc",
+  },
+  {
+    id: "doc-abx",
+    filename: "antibiotic_susceptibility_panel.pdf",
+    label: "Antibiotic Susceptibility Panel",
+    size: "148 KB",
+    icon: "biotech",
+    color: "#16a34a",
+    tags: ["MIC", "CBER LBP guidance", "resistance"],
+    category: "cmc",
+  },
+  {
+    id: "doc-mfg",
+    filename: "manufacturing_process_description.pdf",
+    label: "Manufacturing Process Description",
+    size: "312 KB",
+    icon: "precision_manufacturing",
+    color: "#16a34a",
+    tags: ["drug substance", "drug product", "Phase 1 cGMP"],
+    category: "cmc",
+  },
+  // ── TOXICOLOGY (new) ─────────────────────────────────────────────────────
+  {
+    id: "doc-biodist",
+    filename: "biodistribution_shedding_study.pdf",
+    label: "Biodistribution & Shedding Study",
+    size: "418 KB",
+    icon: "biotech",
+    color: "#d97706",
+    tags: ["biodistribution", "shedding", "environmental assessment"],
+    category: "program",
+  },
+  {
+    id: "doc-glp-tox",
+    filename: "GLP_tox_protocol_draft.pdf",
+    label: "GLP Tox Protocol (Draft)",
+    size: "224 KB",
+    icon: "science",
+    color: "#d97706",
+    tags: ["GLP", "repeat-dose", "species TBD"],
+    category: "program",
+  },
+  {
+    id: "doc-nonclin-gap",
+    filename: "nonclinical_gap_assessment.md",
+    label: "Nonclinical Gap Assessment",
+    size: "18 KB",
+    icon: "checklist",
+    color: "#d97706",
+    tags: ["gap analysis", "IND readiness"],
+    category: "program",
+  },
+  // ── CLINICAL ─────────────────────────────────────────────────────────────
+  {
+    id: "doc-clinical-proto",
+    filename: "clinical-protocol-outline_draft.md",
+    label: "Clinical Protocol Outline (Draft)",
+    size: "12 KB",
+    icon: "local_hospital",
+    color: "#8b5cf6",
+    tags: ["Phase 1", "pre-IND", "outline only"],
+    category: "program",
+  },
 ];
 
 // Node → primary document mapping (opens in doc tab on click)
@@ -103,7 +279,7 @@ export const NODE_DOC_MAP: Record<string, string> = {
   "END-00":  "doc-nglp",
   "END-IP":  "doc-tpp",
   "END-03":  "doc-tpp",
-  "END-04":  "doc-fda-lbp",
+  "END-04":  "doc-glp-tox",
   "END-GR":  "doc-fda-lbp",
   "END-BP":  "doc-tpp",
   "END-05":  "doc-tpp",
@@ -126,7 +302,7 @@ export const NODE_CONTEXT_DOCS: Record<string, string[]> = {
   "END-02":   ["doc-nglp", "doc-ich-s6", "doc-fda-lbp"],
   "END-08":   ["doc-fda-ea", "doc-fda-lbp"],
   "END-03":   ["doc-fda-lbp", "doc-ich-s6", "doc-nglp"],
-  "END-04":   ["doc-ich-s6", "doc-fda-lbp", "doc-nglp"],
+  "END-04":   ["doc-glp-tox", "doc-ich-s6", "doc-fda-lbp", "doc-nglp"],
   "END-07":   ["doc-fda-lbp", "doc-tpp"],
   "END-GR":   ["doc-ich-s6", "doc-fda-lbp"],
   "END-BP":   ["doc-tpp", "doc-fda-lbp"],
@@ -140,6 +316,107 @@ export const NODE_CONTEXT_DOCS: Record<string, string[]> = {
   "FUND-04":  ["doc-sbir", "doc-tpp"],
   "FUND-05":  ["doc-tpp", "doc-sbir"],
   "FUND-GAP": ["doc-sbir"],
+};
+
+// ─── File tree ────────────────────────────────────────────────────────────────
+
+export type FileTreeNode =
+  | { kind: "folder"; name: string; children: FileTreeNode[]; defaultOpen?: boolean }
+  | { kind: "file"; docId: string };
+
+export const FILE_TREE: FileTreeNode = {
+  kind: "folder",
+  name: "END-101",
+  defaultOpen: true,
+  children: [
+    {
+      kind: "folder",
+      name: "CLINICAL",
+      children: [
+        { kind: "file", docId: "doc-clinical-proto" },
+      ],
+    },
+    {
+      kind: "folder",
+      name: "REGULATORY",
+      defaultOpen: true,
+      children: [
+        {
+          kind: "folder",
+          name: "US",
+          defaultOpen: true,
+          children: [
+            {
+              kind: "folder",
+              name: "Communications TO FDA",
+              defaultOpen: true,
+              children: [
+                { kind: "file", docId: "doc-interact-req" },
+                { kind: "file", docId: "doc-interact-pkg" },
+                { kind: "file", docId: "doc-preind-req" },
+                { kind: "file", docId: "doc-preind-brief" },
+                { kind: "file", docId: "doc-odd-req" },
+              ],
+            },
+            {
+              kind: "folder",
+              name: "Communications FROM FDA",
+              children: [
+                { kind: "file", docId: "doc-fda-interact-resp" },
+              ],
+            },
+          ],
+        },
+        {
+          kind: "folder",
+          name: "EX-US",
+          children: [],
+        },
+        {
+          kind: "folder",
+          name: "GUIDANCE",
+          children: [
+            { kind: "file", docId: "doc-fda-lbp" },
+            { kind: "file", docId: "doc-ich-s6" },
+            { kind: "file", docId: "doc-fda-ea" },
+            { kind: "file", docId: "doc-ich-m3" },
+            { kind: "file", docId: "doc-fda-cgmp" },
+          ],
+        },
+      ],
+    },
+    {
+      kind: "folder",
+      name: "CMC",
+      children: [
+        { kind: "file", docId: "doc-mcb" },
+        { kind: "file", docId: "doc-ngs" },
+        { kind: "file", docId: "doc-potency" },
+        { kind: "file", docId: "doc-abx" },
+        { kind: "file", docId: "doc-mfg" },
+      ],
+    },
+    {
+      kind: "folder",
+      name: "TOXICOLOGY",
+      defaultOpen: true,
+      children: [
+        { kind: "file", docId: "doc-nglp" },
+        { kind: "file", docId: "doc-biodist" },
+        { kind: "file", docId: "doc-glp-tox" },
+        { kind: "file", docId: "doc-nonclin-gap" },
+      ],
+    },
+    {
+      kind: "folder",
+      name: "PROGRAM",
+      defaultOpen: true,
+      children: [
+        { kind: "file", docId: "doc-tpp" },
+        { kind: "file", docId: "doc-sbir" },
+      ],
+    },
+  ],
 };
 
 export interface MapEdge {
