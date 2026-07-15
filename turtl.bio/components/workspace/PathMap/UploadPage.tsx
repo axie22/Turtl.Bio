@@ -81,8 +81,8 @@ export function UploadPage({ onAnalyze, onNavigate }: UploadPageProps) {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto px-6 py-12">
-        <div className="w-full max-w-2xl mx-auto">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 overflow-hidden">
+        <div className="w-full max-w-2xl flex flex-col min-h-0">
 
           {/* Header */}
           <div className="mb-8">
@@ -102,7 +102,7 @@ export function UploadPage({ onAnalyze, onNavigate }: UploadPageProps) {
           {/* Import zone — always shown */}
           <div
             onClick={!allLoaded ? handleImport : undefined}
-            className={`mb-4 flex items-center gap-4 px-5 py-4 border rounded-sm transition-all duration-200 ${
+            className={`mb-3 flex items-center gap-4 px-5 py-4 border rounded-sm transition-all duration-200 ${
               allLoaded
                 ? "border-ws-highest/20 bg-ws-low cursor-default"
                 : importing
@@ -144,7 +144,10 @@ export function UploadPage({ onAnalyze, onNavigate }: UploadPageProps) {
             )}
           </div>
 
-          {/* Document cards — revealed one by one */}
+          {/* Document cards — scrollable list */}
+          {docsVisible.size > 0 && (
+          <div className="overflow-y-auto min-h-0 flex-1 pr-1 mt-0">
+          <div className="space-y-0">
           {DEMO_DOCS.map((doc) => {
             const visible = docsVisible.has(doc.id);
             if (!visible) return null;
@@ -188,6 +191,9 @@ export function UploadPage({ onAnalyze, onNavigate }: UploadPageProps) {
               </div>
             );
           })}
+          </div>
+          </div>
+          )}
 
           {/* Analyze button — only shown after docs loaded */}
           {allLoaded && (
